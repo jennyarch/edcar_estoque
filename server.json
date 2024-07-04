@@ -1,0 +1,22 @@
+{
+    "produtos": [
+        {
+            "id": 1,
+            "codigo": "0001",
+            "nome": "freio abs",
+            "estoque": 12
+        },
+        {
+            "id": 2,
+            "codigo": "0002",
+            "nome": "pistão",
+            "estoque": 5
+        },
+        {
+            "id": 3,
+            "codigo": "0045",
+            "nome": "porca",
+            "estoque": 10
+        }
+    ]
+}

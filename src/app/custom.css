@@ -1,0 +1,11 @@
+.ant-menu .ant-menu-item-selected{
+    background: #991b1b;
+}
+
+#btnFiltro:hover{
+    background: #dc2626;
+}
+
+#btnAdiciona:hover{
+    background: #dc2626;
+}
