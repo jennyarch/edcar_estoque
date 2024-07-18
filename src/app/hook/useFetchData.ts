@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-
-// Defina seu tipo de dados conforme necessário
-interface Data {
-	title: string;
-	dataIndex: string;
-	key: string;
-	render: () => void;
+interface DataType {
+    key: number;
+    codigo: string;
+    nome: string;
+    estoque: number;
 }
 
-const useFetchData = () => {
-	const [data, setData] = useState<Data[]>([]);
+const useFetchData = (): { data: DataType[], loading: boolean, error: Error | null } => {
+	const [data, setData] = useState<DataType[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
@@ -17,7 +15,7 @@ const useFetchData = () => {
 		const fetchData = async () => {
 			try {
 				const response = await fetch('http://localhost:3333/produtos');
-				const result = await response.json();
+				const result: DataType[] = await response.json();
 				setData(result);
 			} catch (err) {
 				setError(err as Error);
