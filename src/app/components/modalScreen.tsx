@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Button, FormInstance, Modal, Typography } from 'antd';
+import axios from 'axios';
 
 interface ModalScreenProps {
     title: string;
@@ -21,7 +22,7 @@ const ModalScreen: React.FC<ModalScreenProps> = ({ title, btnAction, isModalOpen
     };
 
     function handleDelete(){
-        console.log('deletando')
+        form.submit()
     };
 
     return (
@@ -30,7 +31,7 @@ const ModalScreen: React.FC<ModalScreenProps> = ({ title, btnAction, isModalOpen
                 <Typography className={styleTitle}>{title}</Typography>
             ) } 
             open={isModalOpen} 
-            onOk={handleOk} 
+            onOk={handleOk || handleDelete} 
             onCancel={handleCancel}
             footer={[
                 <Button key="back" onClick={handleCancel}>

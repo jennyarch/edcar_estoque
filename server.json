@@ -1,22 +1,112 @@
 {
-    "produtos": [
-        {
-            "id": 1,
-            "codigo": "0001",
-            "nome": "freio abs",
-            "estoque": 12
-        },
-        {
-            "id": 2,
-            "codigo": "0002",
-            "nome": "pistão",
-            "estoque": 5
-        },
-        {
-            "id": 3,
-            "codigo": "0045",
-            "nome": "porca",
-            "estoque": 10
-        }
-    ]
+  "produtos": [
+    {
+      "id": "1",
+      "codigo": "0001",
+      "qtdEstoque": "12",
+      "nome": "freio abs"
+    },
+    {
+      "id": "2",
+      "codigo": "0002",
+      "qtdEstoque": "5",
+      "nome": "pistão"
+    },
+    {
+      "id": "3",
+      "codigo": "0045",
+      "qtdEstoque": "10",
+      "nome": "porca"
+    },
+    {
+      "id": "f8ec",
+      "nome": "Teste",
+      "qtdEstoque": "23",
+      "codigo": "1121"
+    },
+    {
+      "id": "b74f",
+      "nome": "Oléo de Junta",
+      "qtdEstoque": "78",
+      "codigo": "5454"
+    },
+    {
+      "id": "129d",
+      "nome": " Testando campo",
+      "qtdEstoque": "33",
+      "codigo": "0097"
+    },
+    {
+      "id": "3f9f",
+      "nome": "Bobina de carro",
+      "qtdEstoque": "34",
+      "codigo": "3989"
+    },
+    {
+      "id": "cb86",
+      "nome": "Bobina de carro23",
+      "qtdEstoque": "23",
+      "codigo": "2231"
+    },
+    {
+      "id": "4947",
+      "nome": "Teste2",
+      "qtdEstoque": "2",
+      "codigo": "9800"
+    },
+    {
+      "id": "d4ea",
+      "nome": "Teste2",
+      "qtdEstoque": "2",
+      "codigo": "9800"
+    },
+    {
+      "id": "e33a",
+      "nome": "Teste2",
+      "qtdEstoque": "2",
+      "codigo": "9800"
+    },
+    {
+      "id": "e9c5",
+      "nome": "Teste3",
+      "qtdEstoque": "3",
+      "codigo": "333"
+    },
+    {
+      "id": "ba40",
+      "nome": "Teste10",
+      "qtdEstoque": "5",
+      "codigo": "45555"
+    },
+    {
+      "id": "14b8",
+      "nome": "Teste11",
+      "qtdEstoque": "5",
+      "codigo": "00003"
+    },
+    {
+      "id": "e9c5",
+      "nome": "Teste333",
+      "qtdEstoque": "3",
+      "codigo": "333"
+    },
+    {
+      "id": "9f50",
+      "nome": "Testando 14",
+      "qtdEstoque": "14",
+      "codigo": "1414"
+    },
+    {
+      "id": "cc77",
+      "nome": "Teste67",
+      "qtdEstoque": "67",
+      "codigo": "6767"
+    },
+    {
+      "id": "cdf4",
+      "nome": "Testando 50",
+      "qtdEstoque": "50",
+      "codigo": "88767"
+    }
+  ]
 }

@@ -70,8 +70,6 @@ export default function Home(){
 						<h1 className="text-white text-lg">Ed Car</h1>
 					</div>
 					<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-				{/* <Space>
-				</Space> */}
 
 				<div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '10px' }}>
 					<Button

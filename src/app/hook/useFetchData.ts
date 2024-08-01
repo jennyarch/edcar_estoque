@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 interface DataType {
-    key: number;
+    id: string;
     codigo: string;
     nome: string;
-    estoque: number;
+    qtdEstoque: string;
 }
 
 const useFetchData = (): { data: DataType[], loading: boolean, error: Error | null } => {
