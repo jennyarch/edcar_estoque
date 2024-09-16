@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { Layout, Space, Typography, Button, Row, Col, Form, Input } from "antd";
 import Image from "next/image";
-import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/Auth";
 
 import logo from '../../assets/logo.png';
 import logoBg from '../../assets/logoBackground.svg';
@@ -14,32 +14,9 @@ type UserLogin = {
 }
 
 export default function Login(){
-
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const router = useRouter();
     
     const [form] = Form.useForm();
-
-    async function handleLogin(dados: UserLogin){
-        setEmail(dados.email)
-        setPassword(dados.password)
-
-        try {
-            await authService.login(email, password);
-                router.push('/');
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('An unexpected error occurred');
-            }
-        }
-
-        await authService.login(email, password);
-    }
+    const { login, loading } = useAuth();
 
     return(
         <Layout className="h-[100vh] w-[100vw] p-[40px] bg-blue-950">
@@ -58,7 +35,7 @@ export default function Login(){
 
                         <Form
                             name="login"
-                            onFinish={handleLogin}
+                            onFinish={login}
                             layout="vertical"
                             hideRequiredMark
                             form={form}
@@ -83,7 +60,7 @@ export default function Login(){
                                 rules={[
                                     {
                                         required: true,
-                                        message: 'Preencha a senha!',
+                                        message: 'Insira a senha!',
                                     },
                                 ]}
                                 style={{ marginBottom: 30 }}
@@ -92,7 +69,7 @@ export default function Login(){
                             </Form.Item>
 
                             <Form.Item>
-                                <Button className="w-[100%] h-[40px] bg-red-700 drop-shadow-md font-medium text-[20px]" type="primary" htmlType="submit">
+                                <Button loading={loading} className="w-[100%] h-[40px] bg-red-700 drop-shadow-md font-medium text-[20px]" type="primary" htmlType="submit">
                                     Entrar
                                 </Button>
                             </Form.Item>

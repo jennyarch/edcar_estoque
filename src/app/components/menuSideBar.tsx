@@ -8,7 +8,7 @@ import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
 import Estoque from "../Estoque/page";
 import Inicio from '../Inicio/Inicio';
-import { authService } from "@/services/authService";
+import { useAuth } from "@/context/Auth";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -32,6 +32,7 @@ function getItem(
 
 export const MenuSideBar = () => {
     const router = useRouter()
+	const { logout } = useAuth();
 
 	const items: MenuItem[] = [
 		getItem('Inicio', '1', <HomeOutlined />, undefined, () => {
@@ -44,7 +45,6 @@ export const MenuSideBar = () => {
 		})
 	];
 
-	// const [collapsed, setCollapsed] = useState(false);
 	const [selectedKey, setSelectedKey] = useState('1');
 
 	const renderContent = () => {
@@ -58,42 +58,36 @@ export const MenuSideBar = () => {
 		}
 	};
 
-    function handleLogout(){
-
-        try {
-            authService.logout()
-            router.push('/Login');
-        } catch (err){
-            if (err instanceof Error) {
-                notification.error({
-                    message: 'Erro ao tentar deslogar',
-                    description: err.message,
-                    duration: 10
-                });
-            } else {
-                console.log('An unexpected error occurred');
-            }
-        }
-    }
-
 	return (
 		<Layout style={{ minHeight: '100vh' }}>
-			<Sider>
-					<div className="flex justify-center bg-slate-800 p-2 min-h-2 rounded mt-2 mb-2">
-						<h1 className="text-white text-lg">Ed Car</h1>
-					</div>
-					<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-
-				<div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '10px' }}>
-					<Button
-						type="primary"
-						icon={<LogoutOutlined />}
-						onClick={handleLogout}
-						style={{ width: '100%', background: '#991b1b' }}
-					>
-						Sair
-					</Button>
+			<Sider
+				collapsible
+				collapsed={false} //Para evitar o Sider de collapsar
+				trigger={
+                    <Button
+                        type="primary"
+                        icon={<LogoutOutlined />}
+                        style={{
+                            width: '80%',
+                            background: '#991b1b',
+                            border: 'none',
+                            height: '32px',
+                        }}
+                    >
+                        Sair
+                    </Button>
+                }
+                onCollapse={(collapsed) => {
+                    if (collapsed) {
+                        logout();
+                    }
+                }}
+				
+			>
+				<div className="flex justify-center bg-slate-800 p-2 min-h-2 rounded mt-2 mb-2">
+					<h1 className="text-white text-lg">Ed Car</h1>
 				</div>
+				<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
 			</Sider>
 
 			<Layout>
@@ -108,7 +102,7 @@ export const MenuSideBar = () => {
 					<UsuarioLogado/>
 				</Header>
 
-				<Content className='mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
+				<Content className='h-[100%] mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
 					{renderContent()}
 				</Content>
 

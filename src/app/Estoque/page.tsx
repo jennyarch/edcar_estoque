@@ -27,9 +27,8 @@ export default function Estoque() {
     const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
     const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
 
+    const [loading, setLoading] = useState(false);
     const [loadingTable, setLoadingTable] = useState(false);
-    const [loadingBtnCreate, setLoadingBtnCreate] = useState(false)
-    const [laodingBtnDelete, setLoadingBtnDelete] = useState(false);
 
     const [form] = Form.useForm();
     const urlApi = 'http://localhost:3333';
@@ -38,13 +37,13 @@ export default function Estoque() {
         switch(action) {
             case 'editar':
                 setIsModalOpenEdit(true);
-                // fillEditModalData()
                 break;
             case 'deletar':
                 setIsModalOpenDelete(true);
                 break;
             case 'criar':
                 setIsModalOpenCreate(true);
+                form.resetFields()
                 break;
 
             default:
@@ -78,7 +77,7 @@ export default function Estoque() {
     async function handleProducts(){
         setLoadingTable(true);
 
-        await axios.get(`${urlApi}/produtos`)
+        await axios.get(`${urlApi}/products`)
         .then(res => {
             setLoadingTable(false);
             setData(res.data)
@@ -94,17 +93,17 @@ export default function Estoque() {
     };
 
     async function addProduct(newProduct: any) {
-        setLoadingBtnCreate(true);
+        setLoading(true);
 
         const body = newProduct;
 
-        await axios.post(`${urlApi}/produtos`, body, {
+        await axios.post(`${urlApi}/products`, body, {
             headers: {
                 'Content-Type': 'application/json',
             }
         })
         .then(res => {
-            setLoadingBtnCreate(false);
+            setLoading(false);
             setIsModalOpenCreate(false);
             handleProducts()
 
@@ -114,7 +113,7 @@ export default function Estoque() {
             })
         })
         .catch(err => {
-            setLoadingBtnCreate(false);
+            setLoading(false);
             notification.error({
                 message: 'Erro ao cadastrar produto',
                 description: err.response.data,
@@ -123,36 +122,60 @@ export default function Estoque() {
         })
     };
 
+    async function updateProduct(updateProduct: any){
+        setLoading(true);
+
+        const productId = updateProduct.id;
+        const body = updateProduct;
+
+        await axios.put(`${urlApi}/products/${productId}`, body, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(res => {
+            setLoading(false);
+            setIsModalOpenEdit(false);
+            handleProducts()
+
+            notification.success({
+                message: 'Produto atualizado com sucesso',
+                duration: 10
+            })
+        })
+        .catch(err => {
+            setLoading(false);
+            notification.error({
+                message: 'Erro ao atualizar produto',
+                description: err.response.data,
+                duration: 10
+            })
+        })
+    }
+
     async function deleteProduct(product: any): Promise<void> {
-        setLoadingBtnDelete(true);
+        setLoading(true);
 
-        const body = {
-            id: product.id
-        }
-        
-        try {
-            await axios.delete(`${urlApi}/produtos`, {
-                data: body
-            });
-
-            setLoadingBtnDelete(false);
+        await axios.delete(`${urlApi}/products/${product.id}`)
+        .then(res => {
+            setIsModalOpenDelete(false)
+            handleProducts()
             notification.success({
                 message: 'Produto deletado com sucesso',
                 duration: 10
             })
-
-            } catch (error) {
-            if (axios.isAxiosError(error)) {
-                setLoadingBtnDelete(false);
-                notification.error({
-                    message: 'Erro ao deletar produto',
-                    description: error.message,
-                    duration: 10
-                })
-            } else {
-                console.error('Unexpected error:', error);
-            }
-        }
+        })
+        .catch(err => {
+            notification.error({
+                message: 'Erro ao tentar deletar produto',
+                description: err.message,
+                duration: 10
+            })
+        })
+        .finally(() => {
+            setLoading(false);
+        })
+    
     };
 
     const columns: ColumnsType<DataType> = [
@@ -199,7 +222,7 @@ export default function Estoque() {
 
     useEffect(() => {
         handleProducts()
-    }, [])
+    },[])
 
     return(
         <Content className='p-[20px] h-[100%] w-[100%] rounded-xl bg-white flex flex-col items-start'>
@@ -232,7 +255,10 @@ export default function Estoque() {
                     size='large'
                     rowKey="id"
                     loading={loadingTable}
-                    pagination={false}
+                    pagination={{
+                        pageSize: 5,
+                        defaultCurrent: 1,
+                    }}
                     onRow={(record: DataType) => ({
                         onClick: () => handleRowClick(record),
                     })}
@@ -244,31 +270,33 @@ export default function Estoque() {
                 title={`Apagar "${rowData?.nome}"`} 
                 btnAction={'Apagar'} 
                 isModalOpen={isModalOpenDelete} 
-                loading={laodingBtnDelete}
+                loading={loading}
                 handleCancel={() => handleCancel('deletar')}
                 form={form}                
             >
                 <FormScreen
                     form={form}
                     formValues={rowData}
+                    isDelete={true}
                     onFinish={deleteProduct}
                 />
 
-                <Typography className='mt-8 mb-4'>Esta ação não poderá ser desfeita.</Typography>
+                <Typography className='mt-[-20px] mb-4'>Esta ação não poderá ser desfeita.</Typography>
             </ModalScreen>
 
             <ModalScreen 
                 title={'Editar Estoque'} 
                 btnAction={'Salvar'} 
                 isModalOpen={isModalOpenEdit} 
-                loading={false} 
+                loading={loading} 
                 handleCancel={() => handleCancel('editar')}
                 form={form}                
             >
                 <FormScreen
                     form={form}
                     formValues={rowData}
-                    onFinish={addProduct}
+                    isDelete={false}
+                    onFinish={updateProduct}
                 />
 
             </ModalScreen>
@@ -277,13 +305,14 @@ export default function Estoque() {
                 title={'Adicionar Novo'}
                 btnAction={'Salvar'} 
                 isModalOpen={isModalOpenCreate} 
-                loading={loadingBtnCreate} 
+                loading={loading} 
                 handleCancel={() => handleCancel('criar')}
                 form={form}                
             >
                 <FormScreen
                     form={form}
                     formValues={null}
+                    isDelete={false}
                     onFinish={addProduct}
                 />
 

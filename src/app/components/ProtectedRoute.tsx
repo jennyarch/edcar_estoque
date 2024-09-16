@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/authService';
+import { useAuth } from '@/context/Auth';
 
 type ProtectedRouteProps = {
 	children: ReactNode;
@@ -9,15 +9,19 @@ type ProtectedRouteProps = {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 	const router = useRouter();
+	const { isAuthenticated } = useAuth();
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		if(!authService.isAuthenticated()){
+		if (!isAuthenticated) {
 			router.push('/Login');
+		} else {
+			setLoading(false);
 		}
-	}, [router]);
+	}, [isAuthenticated, router]);
 
-	if(!authService.isAuthenticated()){
-		return null;
+	if (loading) {
+		return <div>Loading...</div>; // Pode ser um spinner ou qualquer componente de loading
 	}
 
 	return <>{children}</>;

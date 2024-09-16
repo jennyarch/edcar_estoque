@@ -12,10 +12,11 @@ interface FormValues {
 interface FormScreenProps {
     form: FormInstance;
     formValues: FormValues | null;
+    isDelete: boolean | undefined;
     onFinish: (values: any) => void;
 }
 
-const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) => {
+const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onFinish }) => {
 
     function fillEditModalData() {
         if (formValues) {
@@ -71,6 +72,7 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                     <Form.Item
                         name="nome"
                         label="Nome"
+                        hidden={isDelete}
                         rules={[ { required: true, message: 'Informe o nome do produto.' }]}
                     >
                         <Input
@@ -85,6 +87,7 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                     <Form.Item
                         name="qtdEstoque"
                         label="Quantidade Estoque"
+                        hidden={isDelete}
                         rules={[ 
                             { required: true, message: 'Informe a quantidade desejada.' },
                             {
@@ -106,6 +109,7 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                     <Form.Item
                         name="codigo"
                         label="Código do Produto"
+                        hidden={isDelete}
                         rules={[ 
                             { required: true, message: 'Informe o código do produto.' },
                             {

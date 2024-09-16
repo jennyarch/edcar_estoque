@@ -1,0 +1,12 @@
+.overlay-spinner {
+    backdrop-filter: blur(2px); 
+    width: 100vw; 
+    height: 100vh; 
+    z-index: 2; 
+    position: fixed; 
+    top: 0;
+    left: 0;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
