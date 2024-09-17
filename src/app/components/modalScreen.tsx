@@ -1,7 +1,5 @@
 import React, { ReactNode } from 'react';
 import { Button, FormInstance, Modal, Typography } from 'antd';
-import axios from 'axios';
-
 interface ModalScreenProps {
     title: string;
     btnAction: string;

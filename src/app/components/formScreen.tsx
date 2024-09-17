@@ -26,7 +26,8 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onF
                 id: formValues.id,
                 nome: formValues.nome,
                 qtdEstoque: formValues.qtdEstoque,
-                codigo: formValues.codigo
+                codigo: formValues.codigo,
+                valor: formValues.valor
             });
         }
     };

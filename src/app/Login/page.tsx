@@ -7,6 +7,7 @@ import { useAuth } from "@/context/Auth";
 
 import logo from '../../assets/logo.png';
 import logoBg from '../../assets/logoBackground.svg';
+import bgImage from '../../assets/ImageVector.jpg';
 
 type UserLogin = {
     email: string;
@@ -87,7 +88,7 @@ export default function Login(){
                 </Col>
 
                 <Col className="w-[70%] h-[100%] bg-red-800 rounded-md flex justify-center items-center">
-                    <Image src={logoBg} alt="" className="w-[80%] h-[80%]"/>
+                    <Image src={bgImage} alt="" className="w-[100%] h-[100%] rounded-md"/>
                 </Col>
             </Row>
         </Layout>

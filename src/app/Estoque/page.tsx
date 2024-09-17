@@ -1,7 +1,27 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Space, Layout, Typography, Col, Row, Input, Button, Table, Form, notification } from 'antd';
-import { SearchOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
+import {
+    Space,
+    Layout,
+    Typography,
+    Col,
+    Row,
+    Input,
+    Button,
+    Table,
+    Form,
+    notification,
+    Dropdown,
+    MenuProps
+} from "antd";
+import {
+    SearchOutlined,
+    FilterOutlined,
+    PlusOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    InboxOutlined,
+} from "@ant-design/icons";
 import ModalScreen from '../components/modalScreen';
 import type { ColumnsType } from 'antd/es/table';
 import FormScreen from '../components/formScreen';
@@ -21,10 +41,12 @@ interface DataType {
 
 export default function Estoque() {
 
-    // const { data, loading, error } = useFetchData();
     const [data, setData] = useState<DataType[]>([]);
     const [rowId, setRowId] = useState<DataType | null>(null);
     const [rowData, setRowData] = useState<DataType | null>(null);
+    const [filterText, setFilterText] = useState('');
+    const [keySelected, setKeySelected] = useState('nome');
+
     const [isModalOpenCreate, setIsModalOpenCreate] = useState(false);
     const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
     const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
@@ -33,7 +55,6 @@ export default function Estoque() {
     const [loadingTable, setLoadingTable] = useState(false);
 
     const [form] = Form.useForm();
-    // const urlApi = 'http://localhost:3333';
 
     const showModal = (action: string) => {
         switch(action) {
@@ -96,29 +117,23 @@ export default function Estoque() {
 
             setData(products);
             setLoadingTable(false);
-        } catch (err) {
+        } catch (err: unknown) {
+            if(err instanceof Error){
+                notification.error({
+                    message: 'Erro ao carregar dados',
+                    description: err.message,
+                    duration: 10
+                });
+            }else{
+                notification.error({
+                    message: 'Erro ao carregar dados do usuário',
+                    description: 'Erro desconhecido',
+                    duration: 10
+                });
+            }
+        }finally {
             setLoadingTable(false);
-            console.error("Erro ao buscar produtos:", err);
-            // notification.error({
-            //     message: 'Erro ao carregar dados',
-            //     description: err.message,
-            //     duration: 10
-            // });
         }
-
-        // await axios.get(`${urlApi}/products`)
-        // .then(res => {
-        //     setLoadingTable(false);
-        //     setData(res.data)
-        // })
-        // .catch(err => {
-        //     setLoadingTable(false);
-        //     notification.error({
-        //         message: 'Erro ao carregar dados',
-        //         description: err.response.data,
-        //         duration: 10
-        //     })
-        // })
     };
 
     async function addProduct(newProduct: any) {
@@ -144,46 +159,33 @@ export default function Estoque() {
                 message: 'Produto cadastrado com sucesso',
                 duration: 10
             });
-        } catch (err) {
+        } catch (err: unknown) {
+            if(err instanceof Error){
+                notification.error({
+                    message: 'Erro ao cadastrar produto',
+                    description: err.message,
+                    duration: 10
+                });
+            }else{
+                notification.error({
+                    message: 'Erro ao carregar dados do usuário',
+                    description: 'Erro desconhecido',
+                    duration: 10
+                });
+            }
+        } finally {
             setLoading(false);
-            console.log(err)
-            // notification.error({
-            //     message: 'Erro ao cadastrar produto',
-            //     description: err.message,
-            //     duration: 10
-            // });
         }
-
-        // const body = newProduct;
-
-        // await axios.post(`${urlApi}/products`, body, {
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     }
-        // })
-        // .then(res => {
-        //     setLoading(false);
-        //     setIsModalOpenCreate(false);
-        //     handleProducts()
-
-        //     notification.success({
-        //         message: 'Produto cadastrado com sucesso',
-        //         duration: 10
-        //     })
-        // })
-        // .catch(err => {
-        //     setLoading(false);
-        //     notification.error({
-        //         message: 'Erro ao cadastrar produto',
-        //         description: err.response.data,
-        //         duration: 10
-        //     })
-        // })
     };
 
     async function updateProduct(updateProduct: DataType){
         setLoading(true);
+        let valorFormatted = updateProduct.valor;
 
+        if(rowData?.valor !== updateProduct.valor){
+            const valueFormatted = String(updateProduct.valor).replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+            valorFormatted = parseFloat(valueFormatted);
+        }
 
         const productId = rowId?.id;
 
@@ -201,7 +203,8 @@ export default function Estoque() {
             await updateDoc(productRef, {
                 codigo: updateProduct.codigo,
                 nome: updateProduct.nome,
-                qtdEstoque: updateProduct.qtdEstoque
+                qtdEstoque: updateProduct.qtdEstoque,
+                valor: valorFormatted
             });
             
             setLoading(false);
@@ -212,42 +215,23 @@ export default function Estoque() {
                 message: 'Produto atualizado com sucesso',
                 duration: 10
             });
-        } catch (err) {
+        } catch (err: unknown) {
+            if(err instanceof Error){
+                notification.error({
+                    message: 'Erro ao atualizar produto',
+                    description: err.message,
+                    duration: 10
+                });
+            }else{
+                notification.error({
+                    message: 'Erro ao carregar dados do usuário',
+                    description: 'Erro desconhecido',
+                    duration: 10
+                });
+            }
+        }finally{
             setLoading(false);
-            console.log(err)
-            // notification.error({
-            //     message: 'Erro ao atualizar produto',
-            //     description: err.message,
-            //     duration: 10
-            // });
         }
-
-        // const productId = updateProduct.id;
-        // const body = updateProduct;
-
-        // await axios.put(`${urlApi}/products/${productId}`, body, {
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     }
-        // })
-        // .then(res => {
-        //     setLoading(false);
-        //     setIsModalOpenEdit(false);
-        //     handleProducts()
-
-        //     notification.success({
-        //         message: 'Produto atualizado com sucesso',
-        //         duration: 10
-        //     })
-        // })
-        // .catch(err => {
-        //     setLoading(false);
-        //     notification.error({
-        //         message: 'Erro ao atualizar produto',
-        //         description: err.response.data,
-        //         duration: 10
-        //     })
-        // })
     }
 
     async function deleteProduct(product: DataType): Promise<void> {
@@ -275,37 +259,62 @@ export default function Estoque() {
                 message: 'Produto deletado com sucesso',
                 duration: 10
             });
-        } catch (err) {
-            console.log(err)
-            // notification.error({
-            //     message: 'Erro ao tentar deletar produto',
-            //     description: err.message,
-            //     duration: 10
-            // });
+        } catch (err: unknown) {
+            if(err instanceof Error){
+                notification.error({
+                    message: 'Erro ao tentar deletar produto',
+                    description: err.message,
+                    duration: 10
+                });
+            }else{
+                notification.error({
+                    message: 'Erro ao carregar dados do usuário',
+                    description: 'Erro desconhecido',
+                    duration: 10
+                });
+            }
+            
         } finally {
             setLoading(false);
         }
-
-        // await axios.delete(`${urlApi}/products/${product.id}`)
-        // .then(res => {
-        //     setIsModalOpenDelete(false)
-        //     handleProducts()
-        //     notification.success({
-        //         message: 'Produto deletado com sucesso',
-        //         duration: 10
-        //     })
-        // })
-        // .catch(err => {
-        //     notification.error({
-        //         message: 'Erro ao tentar deletar produto',
-        //         description: err.message,
-        //         duration: 10
-        //     })
-        // })
-        // .finally(() => {
-        //     setLoading(false);
-        // })
     
+    };
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const searchValue = e.target.value.toLowerCase();
+        setFilterText(searchValue);
+
+        if(searchValue === ''){
+            handleProducts()
+        }else{
+            const filteredData = data?.filter((item) => {
+                if(keySelected === 'nome'){
+                    return item.nome.toLowerCase().includes(searchValue)
+                }
+
+                if(keySelected === 'código'){
+                    return item.codigo.includes(searchValue)
+                }
+
+                return false;
+            });
+            setData(filteredData);
+        }
+    };
+
+    const items: MenuProps['items'] = [
+        {
+            label: 'Nome',
+            key: 'nome'
+        },
+        {
+            label: 'Código',
+            key: 'código'
+        }
+    ];
+
+    const handleMenuClick: MenuProps['onClick'] = (e) => {
+        setKeySelected(e.key);
     };
 
     const columns: ColumnsType<DataType> = [
@@ -317,24 +326,33 @@ export default function Estoque() {
             hidden: true,
         },
         {
-            title: 'Código',
+            title: (
+                <Space className='flex flex-row justify-center'>
+                    <Typography>Código</Typography>
+                    {keySelected === 'código' && <FilterOutlined className='text-red-700' title='Busca por nome'/>}
+                </Space>
+            ),
             dataIndex: 'codigo',
             key: 'codigo',
             align: 'center',
         },
         {
-            title: 'Nome do Produto',
+            title: (
+                <Space className='flex flex-row justify-center'>
+                    <Typography>Nome do Produto</Typography>
+                    {keySelected === 'nome' && <FilterOutlined className='text-red-700' title='Busca por código'/>}
+                </Space>
+            ),
             dataIndex: 'nome',
             key: 'nome',
             align: 'center',
         },
         {
-            title: 'Valor',
+            title: 'Valor(Unitário)',
             dataIndex: 'valor',
             key: 'valor',
             align: 'center',
             render: (value, dados) => (
-                console.log(dados),
                 <Typography>
                     {formatterReal(value)}
                 </Typography>
@@ -347,39 +365,31 @@ export default function Estoque() {
             align: 'center',
         },
         {
-            title: 'Editar',
-            dataIndex: 'editar',
-            key: 'editar',
+            title: 'Ações',
+            dataIndex: 'acao',
+            key: 'acao',
             align: 'center',
             render: (text, dados) => (
-                <Button 
-                    size='large' 
-                    type="text" 
-                    icon={<EditOutlined className="text-xl text-green-500" />}
-                    onClick={() => {
-                        showModal('editar')
-                        setRowId(dados)
-                    }}
-                >  
-                </Button>
-            )
-        },
-        {
-            title: 'Deletar',
-            dataIndex: 'deletar',
-            key: 'deletar',
-            align: 'center',
-            render: (text, dados) => (
-                <Button 
-                    size='large' 
-                    type="text" 
-                    icon={<DeleteOutlined className="text-xl text-red-500" />}
-                    onClick={() => {
-                        showModal('deletar')
-                        setRowId(dados)
-                    }} 
-                >
-                </Button>
+                <Space className='flex flex-row gap-2 justify-center align-baseline'>
+                    <Button 
+                        size='large' 
+                        type="text" 
+                        icon={<EditOutlined className="text-xl text-green-500" />}
+                        onClick={() => {
+                            showModal('editar')
+                            setRowId(dados)
+                        }}
+                    />
+                    <Button 
+                        size='large' 
+                        type="text" 
+                        icon={<DeleteOutlined className="text-xl text-red-500" />}
+                        onClick={() => {
+                            showModal('deletar')
+                            setRowId(dados)
+                        }} 
+                    />
+                </Space>
             )
         },
     ];
@@ -401,13 +411,25 @@ export default function Estoque() {
                         size="middle"
                         placeholder="Pesquisar"
                         prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+                        value={filterText}
+                        onChange={handleSearch}
                     />
-                    <Button id="btnFiltro" className='bg-red-700' type='primary' icon={<FilterOutlined/>}>Filtrar</Button>
+                    <Dropdown 
+                        menu={{ 
+                            items,
+                            selectable: true,
+                            defaultSelectedKeys: [keySelected],
+                            onClick: handleMenuClick,
+                        }} 
+                        trigger={['click']}
+                    >
+                        <Button id="btnFiltro" className='bg-red-700' type='primary' icon={<FilterOutlined/>}>Filtrar por</Button>
+                    </Dropdown>
                 </Space>
 
                 <Space className=''>
                     <Button id='btnAdiciona' type='primary' icon={<PlusOutlined />} className='bg-red-700' onClick={() => showModal('criar')}>
-                        Novo
+                        Novo Produto
                     </Button>
                 </Space>
             </Row>

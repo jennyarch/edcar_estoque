@@ -1,6 +1,9 @@
-import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
+import React, { createContext, useState, ReactNode, useContext } from "react";
 import { notification } from "antd";
 import { useRouter } from "next/navigation";
+import { getDoc, doc } from "firebase/firestore";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, db } from "@/services/firebase";
 
 type UserLogin = {
     email: string;
@@ -29,56 +32,47 @@ function AuthProvider({ children }: AuthProviderProps){
 
     const [loading, setLoading] = useState(false);
     const [token, setToken] = useState<string | null>(localStorage.getItem('EDCAR:TOKEN'));
-    const urlApi = 'http://localhost:3333';
 
     const router = useRouter();
 
     const logout = async () => {
-        localStorage.removeItem('EDCAR:TOKEN');
-        localStorage.removeItem('EDCAR:ID');
-        setToken(null)
+        try {
+            await signOut(auth);
+            localStorage.removeItem('EDCAR:TOKEN');
+            localStorage.removeItem('EDCAR:ID');
+            localStorage.removeItem('EDCAR:UserName');
+            setToken(null);
+            router.push('/login');
+        } catch (error) {
+            notification.error({
+                message: 'Erro ao deslogar',
+                description: 'Não foi possível fazer o logout',
+                duration: 10,
+            });
+        }
     };
 
     const login = async (dados: UserLogin) => {
         setLoading(true);
 
-        const body = {
-            "email": dados.email,
-            "password": dados.password
-        };
-
         try {
-            const response = await fetch(`${urlApi}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-            });
-    
-            const data = await response.json();
-    
-            if(data.token){
-                setLoading(false);
-                localStorage.setItem('EDCAR:TOKEN', data.token);
-                localStorage.setItem('EDCAR:ID', data.userId);
-                setToken(data.token);
-                router.push('/');
-            }else{
-                setLoading(false);
-                notification.error({
-                    message: 'Erro de login',
-                    description: data.message || 'Erro ao fazer login',
-                    duration: 10
-                })
-            }
+            const userCredential = await signInWithEmailAndPassword(auth, dados.email, dados.password);
+            const token = await userCredential.user.getIdToken();
 
-        } catch (error){
+            localStorage.setItem('EDCAR:TOKEN', token);
+            localStorage.setItem('EDCAR:ID', userCredential.user.uid);
+            setToken(token);
+
+            router.push('/');
+        } catch (error) {
             notification.error({
                 message: 'Erro de login',
-                description: 'Erro ao se comunicar com o servidor',
+                description: 'Credenciais inválidas ou erro no servidor',
                 duration: 10,
             });
+        }finally {
+            setLoading(false);
         }
-
     };
 
     return (

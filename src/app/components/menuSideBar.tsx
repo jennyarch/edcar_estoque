@@ -1,14 +1,13 @@
 "use client"
-import React, { useState } from "react"
-import { useRouter } from 'next/navigation';
-
+import React, { useState } from "react";
 import type { MenuProps } from "antd";
-import { Breadcrumb, Layout, Menu, Space, theme, Avatar, Row, Col, Typography, Button, notification } from 'antd';
+import { Layout, Menu, Space, Typography, Button, Breadcrumb } from 'antd';
 import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
 import Estoque from "../Estoque/page";
 import Inicio from '../Inicio/Inicio';
 import { useAuth } from "@/context/Auth";
+import '../custom.css';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -31,17 +30,14 @@ function getItem(
 };
 
 export const MenuSideBar = () => {
-    const router = useRouter()
 	const { logout } = useAuth();
 
 	const items: MenuItem[] = [
 		getItem('Inicio', '1', <HomeOutlined />, undefined, () => {
 			setSelectedKey('1'); 
-			// router.push('/Inicio')
 		}),
 		getItem('Estoque', '2', <InboxOutlined />, undefined, () => {
 			setSelectedKey('2');
-			// router.push('/Estoque')
 		})
 	];
 
@@ -61,6 +57,7 @@ export const MenuSideBar = () => {
 	return (
 		<Layout style={{ minHeight: '100vh' }}>
 			<Sider
+				id="siderMenu"
 				collapsible
 				collapsed={false} //Para evitar o Sider de collapsar
 				trigger={
@@ -84,18 +81,19 @@ export const MenuSideBar = () => {
                 }}
 				
 			>
-				<div className="flex justify-center bg-slate-800 p-2 min-h-2 rounded mt-2 mb-2">
-					<h1 className="text-white text-lg">Ed Car</h1>
-				</div>
+				<Space className="flex flex-col justify-center bg-rose-700 p-2 min-h-2 rounded mb-2">
+					<Typography className="text-white text-xl font-medium">EdCar</Typography>
+					<Typography className="text-white text-sm font-thin">Sistema de Estoque</Typography>
+				</Space>
 				<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
 			</Sider>
 
 			<Layout>
 				<Header className='flex flex-row justify-between bg-white h-[80px] pt-[10px] pb-0 items-center'>
-					<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 20 }}>
+					<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 10 }}>
 						<Space style={{ display: "block", marginTop: 20, marginRight: 20, marginBottom: 20 }}>
 							<Typography.Title level={5} >
-								Olá, Jennyfer Sampaio
+								Olá, seja bem vindo!
 							</Typography.Title>
 						</Space>
 					</Space>
