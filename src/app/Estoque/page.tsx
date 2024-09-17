@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Space, Layout, Typography, Col, Row, Input, Button, Table, Form, notification } from 'antd';
 import { SearchOutlined, FilterOutlined, PlusOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import ModalScreen from '../components/modalScreen';
-// import useFetchData from '../hook/useFetchData';
 import type { ColumnsType } from 'antd/es/table';
 import FormScreen from '../components/formScreen';
-import axios from 'axios';
-import { headers } from 'next/headers';
+import { formatterReal } from '@/utils/formattersTable';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '@/services/firebase'; 
 
 const { Content } = Layout;
 
@@ -16,12 +16,14 @@ interface DataType {
     codigo: string;
     nome: string;
     qtdEstoque: string;
+    valor: number;
 }
 
 export default function Estoque() {
 
     // const { data, loading, error } = useFetchData();
     const [data, setData] = useState<DataType[]>([]);
+    const [rowId, setRowId] = useState<DataType | null>(null);
     const [rowData, setRowData] = useState<DataType | null>(null);
     const [isModalOpenCreate, setIsModalOpenCreate] = useState(false);
     const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
@@ -31,7 +33,7 @@ export default function Estoque() {
     const [loadingTable, setLoadingTable] = useState(false);
 
     const [form] = Form.useForm();
-    const urlApi = 'http://localhost:3333';
+    // const urlApi = 'http://localhost:3333';
 
     const showModal = (action: string) => {
         switch(action) {
@@ -77,104 +79,232 @@ export default function Estoque() {
     async function handleProducts(){
         setLoadingTable(true);
 
-        await axios.get(`${urlApi}/products`)
-        .then(res => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "products"));
+
+            if(querySnapshot.empty){
+                return
+            }
+
+            const products: DataType[] = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                codigo: doc.data().codigo,
+                nome: doc.data().nome,
+                qtdEstoque: doc.data().qtdEstoque,
+                valor: doc.data().valor,
+            }));
+
+            setData(products);
             setLoadingTable(false);
-            setData(res.data)
-        })
-        .catch(err => {
+        } catch (err) {
             setLoadingTable(false);
-            notification.error({
-                message: 'Erro ao carregar dados',
-                description: err.response.data,
-                duration: 10
-            })
-        })
+            console.error("Erro ao buscar produtos:", err);
+            // notification.error({
+            //     message: 'Erro ao carregar dados',
+            //     description: err.message,
+            //     duration: 10
+            // });
+        }
+
+        // await axios.get(`${urlApi}/products`)
+        // .then(res => {
+        //     setLoadingTable(false);
+        //     setData(res.data)
+        // })
+        // .catch(err => {
+        //     setLoadingTable(false);
+        //     notification.error({
+        //         message: 'Erro ao carregar dados',
+        //         description: err.response.data,
+        //         duration: 10
+        //     })
+        // })
     };
 
     async function addProduct(newProduct: any) {
         setLoading(true);
 
-        const body = newProduct;
+        const valueFormatted = newProduct.valor?.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+        const valorFormatted = parseFloat(valueFormatted);
 
-        await axios.post(`${urlApi}/products`, body, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(res => {
+        const body = {
+            codigo: newProduct.codigo,
+            nome: newProduct.nome,
+            qtdEstoque: newProduct.qtdEstoque,
+            valor: valorFormatted
+        };
+
+        try {
+            await addDoc(collection(db, "products"), body);
             setLoading(false);
             setIsModalOpenCreate(false);
-            handleProducts()
-
+            handleProducts();
+    
             notification.success({
                 message: 'Produto cadastrado com sucesso',
                 duration: 10
-            })
-        })
-        .catch(err => {
+            });
+        } catch (err) {
             setLoading(false);
-            notification.error({
-                message: 'Erro ao cadastrar produto',
-                description: err.response.data,
-                duration: 10
-            })
-        })
+            console.log(err)
+            // notification.error({
+            //     message: 'Erro ao cadastrar produto',
+            //     description: err.message,
+            //     duration: 10
+            // });
+        }
+
+        // const body = newProduct;
+
+        // await axios.post(`${urlApi}/products`, body, {
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     }
+        // })
+        // .then(res => {
+        //     setLoading(false);
+        //     setIsModalOpenCreate(false);
+        //     handleProducts()
+
+        //     notification.success({
+        //         message: 'Produto cadastrado com sucesso',
+        //         duration: 10
+        //     })
+        // })
+        // .catch(err => {
+        //     setLoading(false);
+        //     notification.error({
+        //         message: 'Erro ao cadastrar produto',
+        //         description: err.response.data,
+        //         duration: 10
+        //     })
+        // })
     };
 
-    async function updateProduct(updateProduct: any){
+    async function updateProduct(updateProduct: DataType){
         setLoading(true);
 
-        const productId = updateProduct.id;
-        const body = updateProduct;
 
-        await axios.put(`${urlApi}/products/${productId}`, body, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(res => {
+        const productId = rowId?.id;
+
+        if (!productId) {
+            notification.info({
+                message: "O ID do produto é necessário para a atualização.",
+                duration: 10
+            });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const productRef = doc(db, "products", productId);
+            await updateDoc(productRef, {
+                codigo: updateProduct.codigo,
+                nome: updateProduct.nome,
+                qtdEstoque: updateProduct.qtdEstoque
+            });
+            
             setLoading(false);
             setIsModalOpenEdit(false);
-            handleProducts()
+            handleProducts();
 
             notification.success({
                 message: 'Produto atualizado com sucesso',
                 duration: 10
-            })
-        })
-        .catch(err => {
+            });
+        } catch (err) {
             setLoading(false);
-            notification.error({
-                message: 'Erro ao atualizar produto',
-                description: err.response.data,
-                duration: 10
-            })
-        })
+            console.log(err)
+            // notification.error({
+            //     message: 'Erro ao atualizar produto',
+            //     description: err.message,
+            //     duration: 10
+            // });
+        }
+
+        // const productId = updateProduct.id;
+        // const body = updateProduct;
+
+        // await axios.put(`${urlApi}/products/${productId}`, body, {
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     }
+        // })
+        // .then(res => {
+        //     setLoading(false);
+        //     setIsModalOpenEdit(false);
+        //     handleProducts()
+
+        //     notification.success({
+        //         message: 'Produto atualizado com sucesso',
+        //         duration: 10
+        //     })
+        // })
+        // .catch(err => {
+        //     setLoading(false);
+        //     notification.error({
+        //         message: 'Erro ao atualizar produto',
+        //         description: err.response.data,
+        //         duration: 10
+        //     })
+        // })
     }
 
-    async function deleteProduct(product: any): Promise<void> {
+    async function deleteProduct(product: DataType): Promise<void> {
         setLoading(true);
 
-        await axios.delete(`${urlApi}/products/${product.id}`)
-        .then(res => {
-            setIsModalOpenDelete(false)
-            handleProducts()
+        const idProduct = rowId?.id;
+
+        if (!idProduct) {
+            notification.info({
+                message: "O ID do produto é necessário para a exclusão.",
+                duration: 10
+            });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const productRef = doc(db, "products", idProduct);
+            await deleteDoc(productRef);
+            
+            setIsModalOpenDelete(false);
+            handleProducts();
+    
             notification.success({
                 message: 'Produto deletado com sucesso',
                 duration: 10
-            })
-        })
-        .catch(err => {
-            notification.error({
-                message: 'Erro ao tentar deletar produto',
-                description: err.message,
-                duration: 10
-            })
-        })
-        .finally(() => {
+            });
+        } catch (err) {
+            console.log(err)
+            // notification.error({
+            //     message: 'Erro ao tentar deletar produto',
+            //     description: err.message,
+            //     duration: 10
+            // });
+        } finally {
             setLoading(false);
-        })
+        }
+
+        // await axios.delete(`${urlApi}/products/${product.id}`)
+        // .then(res => {
+        //     setIsModalOpenDelete(false)
+        //     handleProducts()
+        //     notification.success({
+        //         message: 'Produto deletado com sucesso',
+        //         duration: 10
+        //     })
+        // })
+        // .catch(err => {
+        //     notification.error({
+        //         message: 'Erro ao tentar deletar produto',
+        //         description: err.message,
+        //         duration: 10
+        //     })
+        // })
+        // .finally(() => {
+        //     setLoading(false);
+        // })
     
     };
 
@@ -199,6 +329,18 @@ export default function Estoque() {
             align: 'center',
         },
         {
+            title: 'Valor',
+            dataIndex: 'valor',
+            key: 'valor',
+            align: 'center',
+            render: (value, dados) => (
+                console.log(dados),
+                <Typography>
+                    {formatterReal(value)}
+                </Typography>
+            )
+        },
+        {
             title: 'Qtd Estoque',
             dataIndex: 'qtdEstoque',
             key: 'qtdEstoque',
@@ -209,14 +351,36 @@ export default function Estoque() {
             dataIndex: 'editar',
             key: 'editar',
             align: 'center',
-            render: () => <Button size='large' type="text" icon={<EditOutlined className="text-xl text-green-500" onClick={() => showModal('editar')} />}></Button>
+            render: (text, dados) => (
+                <Button 
+                    size='large' 
+                    type="text" 
+                    icon={<EditOutlined className="text-xl text-green-500" />}
+                    onClick={() => {
+                        showModal('editar')
+                        setRowId(dados)
+                    }}
+                >  
+                </Button>
+            )
         },
         {
             title: 'Deletar',
             dataIndex: 'deletar',
             key: 'deletar',
             align: 'center',
-            render: () => <Button size='large' type="text" icon={<DeleteOutlined className="text-xl text-red-500" onClick={() => showModal('deletar')} />}></Button>
+            render: (text, dados) => (
+                <Button 
+                    size='large' 
+                    type="text" 
+                    icon={<DeleteOutlined className="text-xl text-red-500" />}
+                    onClick={() => {
+                        showModal('deletar')
+                        setRowId(dados)
+                    }} 
+                >
+                </Button>
+            )
         },
     ];
 

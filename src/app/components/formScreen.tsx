@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import { Col, Form, Row, Input, Button, FormInstance } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
+import { NumericFormat } from 'react-number-format';
 
 interface FormValues {
     id: string;
     nome: string;
     qtdEstoque: string;
     codigo: string;
+    valor: number;
 }
 
 interface FormScreenProps {
@@ -62,14 +64,6 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onF
             <Row gutter={16} className="mt-10">
                 <Col span={24}>
                     <Form.Item
-                        name="id"
-                        label="Id"
-                        hidden={true}
-                    >
-                        <Input/>
-                    </Form.Item>
-
-                    <Form.Item
                         name="nome"
                         label="Nome"
                         hidden={isDelete}
@@ -82,6 +76,28 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onF
                                 <Button type="text" icon={<CloseOutlined/>} className="text-red-400 text-sm mr-[-8px]" onClick={() => handleClear('nome')}></Button>
                             }
                         />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="valor"
+                        label="Valor(Unitário)"
+                        hidden={isDelete}
+                        rules={[
+                            { required: true, message: 'Informe o valor do produto unitário.' }
+                        ]}
+                    >
+                        <NumericFormat
+                            className="w-[30%]"
+                            thousandSeparator="."
+                            decimalSeparator=","
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            allowNegative={false}
+                            prefix={'R$ '}
+                            placeholder="R$ 0,00"
+                            customInput={Input}
+                        />
+
                     </Form.Item>
 
                     <Form.Item
