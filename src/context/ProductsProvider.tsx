@@ -16,6 +16,7 @@ interface ProductContextType {
     setProducts: React.Dispatch<React.SetStateAction<DataType[]>>;
     handleProducts: () => void;
     loadingProducts: boolean;
+    finishLoading: boolean;
 }
 
 const ProductsContext = createContext<ProductContextType>({} as ProductContextType);
@@ -24,6 +25,7 @@ export const useProducts = () => useContext(ProductsContext);
 
 const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
     const [products, setProducts] = useState<DataType[]>([]);
+    const [finishLoading, setFinishLoading] = useState(true);
     const [loadingProducts, setLoadingProducts] = useState(false);
 
     const handleProducts = async () => {
@@ -45,6 +47,7 @@ const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
             }));
 
             setProducts(products);
+            setFinishLoading(false)
 
         } catch (err: unknown) {
             if(err instanceof Error){
@@ -66,7 +69,7 @@ const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <ProductsContext.Provider value={{ products, setProducts, handleProducts, loadingProducts }}>
+        <ProductsContext.Provider value={{ products, setProducts, handleProducts, loadingProducts, finishLoading }}>
             {children}
         </ProductsContext.Provider>
     );
