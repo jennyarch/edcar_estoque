@@ -1,7 +1,6 @@
 import React, { createContext, useState, ReactNode, useContext } from "react";
 import { notification } from "antd";
 import { useRouter } from "next/navigation";
-import { getDoc, doc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "@/services/firebase";
 
@@ -36,12 +35,17 @@ function AuthProvider({ children }: AuthProviderProps){
     const router = useRouter();
 
     const logout = async () => {
+        setLoading(true)
+
         try {
             await signOut(auth);
+
             localStorage.removeItem('EDCAR:TOKEN');
             localStorage.removeItem('EDCAR:ID');
             localStorage.removeItem('EDCAR:UserName');
+
             setToken(null);
+            
             router.push('/login');
         } catch (error) {
             notification.error({
@@ -49,6 +53,8 @@ function AuthProvider({ children }: AuthProviderProps){
                 description: 'Não foi possível fazer o logout',
                 duration: 10,
             });
+        }finally {
+            setLoading(false)
         }
     };
 

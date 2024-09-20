@@ -8,6 +8,8 @@ import Estoque from "../Estoque/page";
 import Inicio from '../Inicio/Inicio';
 import { useAuth } from "@/context/Auth";
 import '../custom.css';
+import Image from "next/image";
+import Logo from '../../assets/logo-white.png';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -30,7 +32,7 @@ function getItem(
 };
 
 export const MenuSideBar = () => {
-	const { logout } = useAuth();
+	const { logout, loading } = useAuth();
 
 	const items: MenuItem[] = [
 		getItem('Inicio', '1', <HomeOutlined />, undefined, () => {
@@ -64,6 +66,7 @@ export const MenuSideBar = () => {
                     <Button
                         type="primary"
                         icon={<LogoutOutlined />}
+						loading={loading}
                         style={{
                             width: '80%',
                             background: '#991b1b',
@@ -81,9 +84,8 @@ export const MenuSideBar = () => {
                 }}
 				
 			>
-				<Space className="flex flex-col justify-center bg-rose-700 p-2 min-h-2 rounded mb-2">
-					<Typography className="text-white text-xl font-medium">EdCar</Typography>
-					<Typography className="text-white text-sm font-thin">Sistema de Estoque</Typography>
+				<Space className="flex flex-col justify-center bg-[#991b1b] p-2 min-h-2 mb-2">
+					<Image src={Logo} alt="Logotipo Ed Car" layout="responsive"/>
 				</Space>
 				<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
 			</Sider>

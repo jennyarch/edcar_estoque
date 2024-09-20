@@ -15,10 +15,11 @@ interface FormScreenProps {
     form: FormInstance;
     formValues: FormValues | null;
     isDelete: boolean | undefined;
+    isSell: boolean | undefined;
     onFinish: (values: any) => void;
 }
 
-const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onFinish }) => {
+const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, isSell, onFinish }) => {
 
     function fillEditModalData() {
         if (formValues) {
@@ -48,6 +49,12 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onF
         if(field === 'codigo'){
             form.setFieldsValue({
                 codigo: '',
+            });
+        };
+
+        if(field === 'venda'){
+            form.setFieldsValue({
+                venda: '',
             });
         };
     };
@@ -144,6 +151,30 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, onF
                             }
                         />
                     </Form.Item>
+
+                    {isSell &&
+                        <Form.Item
+                            name="venda"
+                            label="Quantidade vendida"
+                            rules={[ 
+                                { required: true, message: 'Informe a quantidade desejada.' },
+                                {
+                                    validator: (_, value) =>
+                                        value && !/^\d+$/.test(value) ? Promise.reject('Apenas números são permitidos') : Promise.resolve(),
+                                },
+                            ]}
+                        >
+                            <Input
+                                className="w-[30%]"
+                                placeholder="1"
+                                maxLength={100}
+                                suffix={
+                                    <Button type="text" icon={<CloseOutlined/>} className="text-red-400 text-sm mr-[-8px]" onClick={() => handleClear('venda')}></Button>
+                                }
+                            />
+
+                        </Form.Item>
+                    }
                 </Col>
             </Row>
         </Form>

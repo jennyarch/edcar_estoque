@@ -12,14 +12,27 @@ interface ModalScreenProps {
 
 const ModalScreen: React.FC<ModalScreenProps> = ({ title, btnAction, isModalOpen, loading, handleCancel, form, children }) => {
 
-    let styleBtnAction = btnAction === 'Salvar' ? 'bg-green-700 hover:!bg-green-600' : 'bg-red-500 hover:!bg-red-600';
-    let styleTitle = btnAction === 'Salvar' ? 'text-green-700 text-lg' : 'text-red-500 text-lg';
+    let styleBtnAction = '';
+    let styleTitle = '';
+
+    if(btnAction === 'Adicionar'){
+        styleBtnAction = 'bg-red-500 hover:!bg-red-600';
+        styleTitle = 'text-red-500 text-lg';
+    }
+    if(btnAction === 'Salvar'){
+        styleBtnAction = 'bg-yellow-500 hover:!bg-yellow-600';
+        styleTitle = 'text-yellow-500 text-lg';
+    }
+    if(btnAction === 'Apagar'){
+        styleBtnAction = 'bg-red-500 hover:!bg-red-600';
+        styleTitle = 'text-red-700 text-lg';
+    }
+    if(btnAction === 'Confirmar Venda'){
+        styleBtnAction = 'bg-green-500 hover:!bg-green-600';
+        styleTitle = 'text-green-700 text-lg';
+    }
 
     function handleOk(){
-        form.submit()
-    };
-
-    function handleDelete(){
         form.submit()
     };
 
@@ -29,13 +42,13 @@ const ModalScreen: React.FC<ModalScreenProps> = ({ title, btnAction, isModalOpen
                 <Typography className={styleTitle}>{title}</Typography>
             ) } 
             open={isModalOpen} 
-            onOk={handleOk || handleDelete} 
+            onOk={handleOk} 
             onCancel={handleCancel}
             footer={[
                 <Button key="back" onClick={handleCancel}>
                     Voltar
                 </Button>,
-                <Button key="submit" type="primary" loading={loading} onClick={btnAction === 'Salvar' ? handleOk : handleDelete} className={styleBtnAction}>
+                <Button key="submit" type="primary" loading={loading} onClick={handleOk} className={styleBtnAction}>
                     {btnAction}
                 </Button>,
             ]}

@@ -4,13 +4,14 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBYGl2z0TQyG0bl5lMXsXZQW5CDAtHOS6A",
-    authDomain: "edcar-estoque.firebaseapp.com",
-    projectId: "edcar-estoque",
-    storageBucket: "edcar-estoque.appspot.com",
-    messagingSenderId: "835617695824",
-    appId: "1:835617695824:web:1ea5876c212253b1f9c955",
-    measurementId: "G-SGD3FL0LFJ"
+    apiKey: "AIzaSyAMOuJHkMmkPlbdHfm2ATrwoEvigX6IC0c",
+    authDomain: "edcar-freios.firebaseapp.com",
+    databaseURL: "https://edcar-freios-default-rtdb.firebaseio.com",
+    projectId: "edcar-freios",
+    storageBucket: "edcar-freios.appspot.com",
+    messagingSenderId: "663078992108",
+    appId: "1:663078992108:web:ddc3fa5e3458c114b40dc9",
+    measurementId: "G-CQEEZEMV0B"
 };
 
 const app = initializeApp(firebaseConfig);

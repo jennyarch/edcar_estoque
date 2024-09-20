@@ -1,13 +1,11 @@
 'use client';
-import React, { useState } from "react";
-import { Layout, Space, Typography, Button, Row, Col, Form, Input } from "antd";
+import { Layout, Typography, Button, Row, Col, Form, Input } from "antd";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/Auth";
 
 import logo from '../../assets/logo.png';
-import logoBg from '../../assets/logoBackground.svg';
-import bgImage from '../../assets/ImageVector.jpg';
+import bgImage from '../../assets/bg-ilustration.png';
+import Link from "next/link";
 
 type UserLogin = {
     email: string;
@@ -21,8 +19,8 @@ export default function Login(){
 
     return(
         <Layout className="h-[100vh] w-[100vw] p-[40px] bg-blue-950">
-            <Row className="h-[100vw]">
-                <Col className="w-[30%] bg-slate-100 rounded-md p-20 flex flex-col justify-center">
+            <Row className="h-[100%]">
+                <Col className="w-[30%] bg-slate-100 rounded-md p-16 flex flex-col justify-center">
                     <Row justify="center" >
                         <Image src={logo} alt="Logotipo Ed Car" layout="responsive" className="w-[250px]"/>
                     </Row>
@@ -78,13 +76,13 @@ export default function Login(){
                         </Form>
 
                         {/* <Row justify="center">
-                            <Link to={"/esqueci-minha-senha"}>
+                            <Link href={"/esqueci-minha-senha"}>
                                 <Typography.Text level={5} style={{ color: '#7E1416' }}>
                                     Esqueceu sua senha?
                                 </Typography.Text>
                             </Link>
                         </Row> */}
-                        </Col>
+                    </Col>
                 </Col>
 
                 <Col className="w-[70%] h-[100%] bg-red-800 rounded-md flex justify-center items-center">

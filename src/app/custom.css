@@ -1,6 +1,6 @@
-/* .ant-menu .ant-menu-item-selected{
-    background: #991b1b;
-} */
+.ant-menu .ant-menu-item-selected{
+    background: #7f1d1d;
+}
 
 #btnFiltro:hover{
     background: #dc2626;

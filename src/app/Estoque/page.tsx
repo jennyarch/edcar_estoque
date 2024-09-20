@@ -12,7 +12,8 @@ import {
     Form,
     notification,
     Dropdown,
-    MenuProps
+    MenuProps,
+    Tooltip
 } from "antd";
 import {
     SearchOutlined,
@@ -21,13 +22,15 @@ import {
     EditOutlined,
     DeleteOutlined,
     InboxOutlined,
+    DollarOutlined
 } from "@ant-design/icons";
 import ModalScreen from '../components/modalScreen';
 import type { ColumnsType } from 'antd/es/table';
 import FormScreen from '../components/formScreen';
 import { formatterReal } from '@/utils/formattersTable';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '@/services/firebase'; 
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/services/firebase';
+import { useProducts } from '@/context/ProductsProvider';
 
 const { Content } = Layout;
 
@@ -41,34 +44,52 @@ interface DataType {
 
 export default function Estoque() {
 
-    const [data, setData] = useState<DataType[]>([]);
     const [rowId, setRowId] = useState<DataType | null>(null);
     const [rowData, setRowData] = useState<DataType | null>(null);
     const [filterText, setFilterText] = useState('');
     const [keySelected, setKeySelected] = useState('nome');
 
-    const [isModalOpenCreate, setIsModalOpenCreate] = useState(false);
-    const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
-    const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+    const [modalOpen, setModalOpen] = useState({
+        modalCreate: false,
+        modalEdit: false,
+        ModalDelete: false,
+        modalSell: false
+    });
 
     const [loading, setLoading] = useState(false);
-    const [loadingTable, setLoadingTable] = useState(false);
 
     const [form] = Form.useForm();
+
+    const { products, setProducts, loadingProducts, handleProducts } = useProducts();
 
     const showModal = (action: string) => {
         switch(action) {
             case 'editar':
-                setIsModalOpenEdit(true);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalEdit: true
+                }))
                 break;
             case 'deletar':
-                setIsModalOpenDelete(true);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    ModalDelete: true
+                }))
                 break;
             case 'criar':
-                setIsModalOpenCreate(true);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalCreate: true
+                }))
                 form.resetFields()
                 break;
-
+            case 'venda':
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalSell: true
+                }))
+                form.resetFields()
+                break;
             default:
                 console.log('Ação desconhecida', action);
                 break;
@@ -78,15 +99,29 @@ export default function Estoque() {
     const handleCancel = (action: string) => {
         switch(action) {
             case 'editar':
-                setIsModalOpenEdit(false);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalEdit: false
+                }))
                 break;
             case 'deletar':
-                setIsModalOpenDelete(false);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    ModalDelete: false
+                }))
                 break;
             case 'criar':
-                setIsModalOpenCreate(false);
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalCreate: false
+                }))
                 break;
-
+            case 'venda':
+                setModalOpen(prevState => ({
+                    ...prevState,
+                    modalSell: false
+                }))
+                break;
             default:
                 console.log('Ação desconhecida', action);
                 break;
@@ -95,45 +130,6 @@ export default function Estoque() {
 
     const handleRowClick = (lineData: DataType) => {
         setRowData(lineData)
-    };
-
-    async function handleProducts(){
-        setLoadingTable(true);
-
-        try {
-            const querySnapshot = await getDocs(collection(db, "products"));
-
-            if(querySnapshot.empty){
-                return
-            }
-
-            const products: DataType[] = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                codigo: doc.data().codigo,
-                nome: doc.data().nome,
-                qtdEstoque: doc.data().qtdEstoque,
-                valor: doc.data().valor,
-            }));
-
-            setData(products);
-            setLoadingTable(false);
-        } catch (err: unknown) {
-            if(err instanceof Error){
-                notification.error({
-                    message: 'Erro ao carregar dados',
-                    description: err.message,
-                    duration: 10
-                });
-            }else{
-                notification.error({
-                    message: 'Erro ao carregar dados do usuário',
-                    description: 'Erro desconhecido',
-                    duration: 10
-                });
-            }
-        }finally {
-            setLoadingTable(false);
-        }
     };
 
     async function addProduct(newProduct: any) {
@@ -152,7 +148,10 @@ export default function Estoque() {
         try {
             await addDoc(collection(db, "products"), body);
             setLoading(false);
-            setIsModalOpenCreate(false);
+            setModalOpen(prevState => ({
+                ...prevState,
+                modalCreate: false
+            }))
             handleProducts();
     
             notification.success({
@@ -208,7 +207,10 @@ export default function Estoque() {
             });
             
             setLoading(false);
-            setIsModalOpenEdit(false);
+            setModalOpen(prevState => ({
+                ...prevState,
+                modalEdit: false
+            }))
             handleProducts();
 
             notification.success({
@@ -232,9 +234,76 @@ export default function Estoque() {
         }finally{
             setLoading(false);
         }
-    }
+    };
 
-    async function deleteProduct(product: DataType): Promise<void> {
+    async function handleSellProduct(products: any) {
+        setLoading(true);
+
+        const quantitySold = parseInt(products.venda);
+
+        const productId = rowId?.id;
+
+        if (!productId) {
+            notification.info({
+                message: "O ID do produto é necessário para a atualização.",
+                duration: 10
+            });
+            setLoading(false);
+            return;
+        }
+    
+        try {
+            const productRef = doc(db, "products", productId);
+            const productSnapshot = await getDoc(productRef);
+    
+            const productData = productSnapshot.data() as DataType;
+    
+            if (parseInt(productData.qtdEstoque) < quantitySold) {
+                notification.error({
+                    message: 'Estoque insuficiente.',
+                    description: `Quantidades em estoque: ${productData.qtdEstoque}`,
+                    duration: 10,
+                });
+                setLoading(false);
+                return;
+            }
+    
+            const updatedQtdEstoque = parseInt(productData.qtdEstoque) - quantitySold;
+    
+            await updateDoc(productRef, {
+                qtdEstoque: String(updatedQtdEstoque),
+            });
+
+            handleProducts();
+            setModalOpen(prevState => ({
+                ...prevState,
+                modalSell: false
+            }))
+    
+            notification.success({
+                message: 'Venda realizada com sucesso.',
+                description: `Quantidade restante em estoque: ${updatedQtdEstoque}`,
+                duration: 10,
+            });
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                notification.error({
+                    message: 'Erro ao processar a venda',
+                    description: err.message,
+                    duration: 10,
+                });
+            } else {
+                notification.error({
+                    message: 'Erro desconhecido ao processar a venda',
+                    duration: 10,
+                });
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    async function deleteProduct() {
         setLoading(true);
 
         const idProduct = rowId?.id;
@@ -252,7 +321,10 @@ export default function Estoque() {
             const productRef = doc(db, "products", idProduct);
             await deleteDoc(productRef);
             
-            setIsModalOpenDelete(false);
+            setModalOpen(prevState => ({
+                ...prevState,
+                ModalDelete: false
+            }))
             handleProducts();
     
             notification.success({
@@ -287,7 +359,7 @@ export default function Estoque() {
         if(searchValue === ''){
             handleProducts()
         }else{
-            const filteredData = data?.filter((item) => {
+            const filteredData = products?.filter((item) => {
                 if(keySelected === 'nome'){
                     return item.nome.toLowerCase().includes(searchValue)
                 }
@@ -298,7 +370,7 @@ export default function Estoque() {
 
                 return false;
             });
-            setData(filteredData);
+            setProducts(filteredData);
         }
     };
 
@@ -329,7 +401,11 @@ export default function Estoque() {
             title: (
                 <Space className='flex flex-row justify-center'>
                     <Typography>Código</Typography>
-                    {keySelected === 'código' && <FilterOutlined className='text-red-700' title='Busca por nome'/>}
+                    {keySelected === 'código' && 
+                        <Tooltip title={`Busca por ${keySelected}`}>
+                            <FilterOutlined className='text-red-700'/>
+                        </Tooltip>
+                    }
                 </Space>
             ),
             dataIndex: 'codigo',
@@ -340,7 +416,11 @@ export default function Estoque() {
             title: (
                 <Space className='flex flex-row justify-center'>
                     <Typography>Nome do Produto</Typography>
-                    {keySelected === 'nome' && <FilterOutlined className='text-red-700' title='Busca por código'/>}
+                    {keySelected === 'nome' && 
+                        <Tooltip title={`Busca por ${keySelected}`}>
+                            <FilterOutlined className='text-red-700'/>
+                        </Tooltip>
+                    }
                 </Space>
             ),
             dataIndex: 'nome',
@@ -374,7 +454,7 @@ export default function Estoque() {
                     <Button 
                         size='large' 
                         type="text" 
-                        icon={<EditOutlined className="text-xl text-green-500" />}
+                        icon={<EditOutlined className="text-xl text-yellow-500" />}
                         onClick={() => {
                             showModal('editar')
                             setRowId(dados)
@@ -389,6 +469,15 @@ export default function Estoque() {
                             setRowId(dados)
                         }} 
                     />
+                    <Button 
+                        size='large' 
+                        type="text" 
+                        icon={<DollarOutlined className="text-xl text-green-500" />}
+                        onClick={() => {
+                            showModal('venda')
+                            setRowId(dados)
+                        }} 
+                    />
                 </Space>
             )
         },
@@ -396,7 +485,9 @@ export default function Estoque() {
 
     useEffect(() => {
         handleProducts()
-    },[])
+    },[]);
+
+    const { modalCreate, modalEdit, ModalDelete, modalSell } = modalOpen;
 
     return(
         <Content className='p-[20px] h-[100%] w-[100%] rounded-xl bg-white flex flex-col items-start'>
@@ -437,12 +528,12 @@ export default function Estoque() {
             <Col span={24} className='w-[100%] h-[95%]'>
                 <Table
                     columns={columns}
-                    dataSource={data}
+                    dataSource={products}
                     size='large'
                     rowKey="id"
-                    loading={loadingTable}
+                    loading={loadingProducts}
                     pagination={{
-                        pageSize: 5,
+                        pageSize: 100,
                         defaultCurrent: 1,
                     }}
                     onRow={(record: DataType) => ({
@@ -455,7 +546,7 @@ export default function Estoque() {
             <ModalScreen 
                 title={`Apagar "${rowData?.nome}"`} 
                 btnAction={'Apagar'} 
-                isModalOpen={isModalOpenDelete} 
+                isModalOpen={ModalDelete} 
                 loading={loading}
                 handleCancel={() => handleCancel('deletar')}
                 form={form}                
@@ -464,6 +555,7 @@ export default function Estoque() {
                     form={form}
                     formValues={rowData}
                     isDelete={true}
+                    isSell={false}
                     onFinish={deleteProduct}
                 />
 
@@ -473,7 +565,7 @@ export default function Estoque() {
             <ModalScreen 
                 title={'Editar Estoque'} 
                 btnAction={'Salvar'} 
-                isModalOpen={isModalOpenEdit} 
+                isModalOpen={modalEdit} 
                 loading={loading} 
                 handleCancel={() => handleCancel('editar')}
                 form={form}                
@@ -482,6 +574,7 @@ export default function Estoque() {
                     form={form}
                     formValues={rowData}
                     isDelete={false}
+                    isSell={false}
                     onFinish={updateProduct}
                 />
 
@@ -489,8 +582,8 @@ export default function Estoque() {
 
             <ModalScreen 
                 title={'Adicionar Novo'}
-                btnAction={'Salvar'} 
-                isModalOpen={isModalOpenCreate} 
+                btnAction={'Adicionar'} 
+                isModalOpen={modalCreate} 
                 loading={loading} 
                 handleCancel={() => handleCancel('criar')}
                 form={form}                
@@ -499,7 +592,26 @@ export default function Estoque() {
                     form={form}
                     formValues={null}
                     isDelete={false}
+                    isSell={false}
                     onFinish={addProduct}
+                />
+
+            </ModalScreen>
+
+            <ModalScreen 
+                title={'Venda do Produto'}
+                btnAction={'Confirmar Venda'} 
+                isModalOpen={modalSell} 
+                loading={loading} 
+                handleCancel={() => handleCancel('venda')}
+                form={form}                
+            >
+                <FormScreen
+                    form={form}
+                    formValues={rowData}
+                    isDelete={true}
+                    isSell={true}
+                    onFinish={handleSellProduct}
                 />
 
             </ModalScreen>
