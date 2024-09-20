@@ -1,21 +1,25 @@
 import React, { useEffect } from "react";
 import { Col, Form, Row, Input, Button, FormInstance } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
+import { NumericFormat } from 'react-number-format';
 
 interface FormValues {
     id: string;
     nome: string;
     qtdEstoque: string;
     codigo: string;
+    valor: number;
 }
 
 interface FormScreenProps {
     form: FormInstance;
     formValues: FormValues | null;
+    isDelete: boolean | undefined;
+    isSell: boolean | undefined;
     onFinish: (values: any) => void;
 }
 
-const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) => {
+const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, isDelete, isSell, onFinish }) => {
 
     function fillEditModalData() {
         if (formValues) {
@@ -23,7 +27,8 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                 id: formValues.id,
                 nome: formValues.nome,
                 qtdEstoque: formValues.qtdEstoque,
-                codigo: formValues.codigo
+                codigo: formValues.codigo,
+                valor: formValues.valor
             });
         }
     };
@@ -46,6 +51,12 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                 codigo: '',
             });
         };
+
+        if(field === 'venda'){
+            form.setFieldsValue({
+                venda: '',
+            });
+        };
     };
 
     useEffect(() => {
@@ -61,16 +72,9 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
             <Row gutter={16} className="mt-10">
                 <Col span={24}>
                     <Form.Item
-                        name="id"
-                        label="Id"
-                        hidden={true}
-                    >
-                        <Input/>
-                    </Form.Item>
-
-                    <Form.Item
                         name="nome"
                         label="Nome"
+                        hidden={isDelete}
                         rules={[ { required: true, message: 'Informe o nome do produto.' }]}
                     >
                         <Input
@@ -83,8 +87,31 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                     </Form.Item>
 
                     <Form.Item
+                        name="valor"
+                        label="Valor(Unitário)"
+                        hidden={isDelete}
+                        rules={[
+                            { required: true, message: 'Informe o valor do produto unitário.' }
+                        ]}
+                    >
+                        <NumericFormat
+                            className="w-[30%]"
+                            thousandSeparator="."
+                            decimalSeparator=","
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            allowNegative={false}
+                            prefix={'R$ '}
+                            placeholder="R$ 0,00"
+                            customInput={Input}
+                        />
+
+                    </Form.Item>
+
+                    <Form.Item
                         name="qtdEstoque"
                         label="Quantidade Estoque"
+                        hidden={isDelete}
                         rules={[ 
                             { required: true, message: 'Informe a quantidade desejada.' },
                             {
@@ -106,6 +133,7 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                     <Form.Item
                         name="codigo"
                         label="Código do Produto"
+                        hidden={isDelete}
                         rules={[ 
                             { required: true, message: 'Informe o código do produto.' },
                             {
@@ -123,6 +151,30 @@ const FormScreen: React.FC<FormScreenProps> = ({ form, formValues, onFinish }) =
                             }
                         />
                     </Form.Item>
+
+                    {isSell &&
+                        <Form.Item
+                            name="venda"
+                            label="Quantidade vendida"
+                            rules={[ 
+                                { required: true, message: 'Informe a quantidade desejada.' },
+                                {
+                                    validator: (_, value) =>
+                                        value && !/^\d+$/.test(value) ? Promise.reject('Apenas números são permitidos') : Promise.resolve(),
+                                },
+                            ]}
+                        >
+                            <Input
+                                className="w-[30%]"
+                                placeholder="1"
+                                maxLength={100}
+                                suffix={
+                                    <Button type="text" icon={<CloseOutlined/>} className="text-red-400 text-sm mr-[-8px]" onClick={() => handleClear('venda')}></Button>
+                                }
+                            />
+
+                        </Form.Item>
+                    }
                 </Col>
             </Row>
         </Form>

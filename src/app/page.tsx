@@ -1,4 +1,4 @@
-"use client" //Hidratação dos componentes -> convertendo o componente em um client component
+"use client"
 import React, { useState, ReactNode, useEffect } from 'react';
 import ProtectedRoute from './components/ProtectedRoute';
 import { MenuSideBar } from './components/menuSideBar';

@@ -1,14 +1,15 @@
 "use client"
-import React, { useState } from "react"
-import { useRouter } from 'next/navigation';
-
+import React, { useState } from "react";
 import type { MenuProps } from "antd";
-import { Breadcrumb, Layout, Menu, Space, theme, Avatar, Row, Col, Typography, Button, notification } from 'antd';
+import { Layout, Menu, Space, Typography, Button, Breadcrumb } from 'antd';
 import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
 import Estoque from "../Estoque/page";
 import Inicio from '../Inicio/Inicio';
-import { authService } from "@/services/authService";
+import { useAuth } from "@/context/Auth";
+import '../custom.css';
+import Image from "next/image";
+import Logo from '../../assets/logo-white.png';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -31,20 +32,17 @@ function getItem(
 };
 
 export const MenuSideBar = () => {
-    const router = useRouter()
+	const { logout, loading } = useAuth();
 
 	const items: MenuItem[] = [
 		getItem('Inicio', '1', <HomeOutlined />, undefined, () => {
 			setSelectedKey('1'); 
-			// router.push('/Inicio')
 		}),
 		getItem('Estoque', '2', <InboxOutlined />, undefined, () => {
 			setSelectedKey('2');
-			// router.push('/Estoque')
 		})
 	];
 
-	// const [collapsed, setCollapsed] = useState(false);
 	const [selectedKey, setSelectedKey] = useState('1');
 
 	const renderContent = () => {
@@ -58,57 +56,53 @@ export const MenuSideBar = () => {
 		}
 	};
 
-    function handleLogout(){
-
-        try {
-            authService.logout()
-            router.push('/Login');
-        } catch (err){
-            if (err instanceof Error) {
-                notification.error({
-                    message: 'Erro ao tentar deslogar',
-                    description: err.message,
-                    duration: 10
-                });
-            } else {
-                console.log('An unexpected error occurred');
-            }
-        }
-    }
-
 	return (
 		<Layout style={{ minHeight: '100vh' }}>
-			<Sider>
-					<div className="flex justify-center bg-slate-800 p-2 min-h-2 rounded mt-2 mb-2">
-						<h1 className="text-white text-lg">Ed Car</h1>
-					</div>
-					<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-
-				<div style={{ position: 'absolute', bottom: 0, width: '100%', padding: '10px' }}>
-					<Button
-						type="primary"
-						icon={<LogoutOutlined />}
-						onClick={handleLogout}
-						style={{ width: '100%', background: '#991b1b' }}
-					>
-						Sair
-					</Button>
-				</div>
+			<Sider
+				id="siderMenu"
+				collapsible
+				collapsed={false} //Para evitar o Sider de collapsar
+				trigger={
+                    <Button
+                        type="primary"
+                        icon={<LogoutOutlined />}
+						loading={loading}
+                        style={{
+                            width: '80%',
+                            background: '#991b1b',
+                            border: 'none',
+                            height: '32px',
+                        }}
+                    >
+                        Sair
+                    </Button>
+                }
+                onCollapse={(collapsed) => {
+                    if (collapsed) {
+                        logout();
+                    }
+                }}
+				
+			>
+				<Space className="flex flex-col justify-center bg-[#991b1b] p-2 min-h-2 mb-2">
+					<Image src={Logo} alt="Logotipo Ed Car" layout="responsive"/>
+				</Space>
+				<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
 			</Sider>
 
 			<Layout>
 				<Header className='flex flex-row justify-between bg-white h-[80px] pt-[10px] pb-0 items-center'>
-					<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 20 }}>
+					<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 10 }}>
 						<Space style={{ display: "block", marginTop: 20, marginRight: 20, marginBottom: 20 }}>
 							<Typography.Title level={5} >
-								Olá, Jennyfer Sampaio
+								Olá, seja bem vindo!
 							</Typography.Title>
 						</Space>
 					</Space>
 					<UsuarioLogado/>
 				</Header>
 
-				<Content className='mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
+				<Content className='h-[100%] mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
 					{renderContent()}
 				</Content>
 

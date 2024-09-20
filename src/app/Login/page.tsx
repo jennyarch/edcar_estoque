@@ -1,12 +1,11 @@
 'use client';
-import React, { useState } from "react";
-import { Layout, Space, Typography, Button, Row, Col, Form, Input } from "antd";
+import { Layout, Typography, Button, Row, Col, Form, Input } from "antd";
 import Image from "next/image";
-import { authService } from "@/services/authService";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/Auth";
 
 import logo from '../../assets/logo.png';
-import logoBg from '../../assets/logoBackground.svg';
+import bgImage from '../../assets/bg-ilustration.png';
+import Link from "next/link";
 
 type UserLogin = {
     email: string;
@@ -14,37 +13,14 @@ type UserLogin = {
 }
 
 export default function Login(){
-
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const router = useRouter();
     
     const [form] = Form.useForm();
-
-    async function handleLogin(dados: UserLogin){
-        setEmail(dados.email)
-        setPassword(dados.password)
-
-        try {
-            await authService.login(email, password);
-                router.push('/');
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('An unexpected error occurred');
-            }
-        }
-
-        await authService.login(email, password);
-    }
+    const { login, loading } = useAuth();
 
     return(
         <Layout className="h-[100vh] w-[100vw] p-[40px] bg-blue-950">
-            <Row className="h-[100vw]">
-                <Col className="w-[30%] bg-slate-100 rounded-md p-20 flex flex-col justify-center">
+            <Row className="h-[100%]">
+                <Col className="w-[30%] bg-slate-100 rounded-md p-16 flex flex-col justify-center">
                     <Row justify="center" >
                         <Image src={logo} alt="Logotipo Ed Car" layout="responsive" className="w-[250px]"/>
                     </Row>
@@ -58,7 +34,7 @@ export default function Login(){
 
                         <Form
                             name="login"
-                            onFinish={handleLogin}
+                            onFinish={login}
                             layout="vertical"
                             hideRequiredMark
                             form={form}
@@ -83,7 +59,7 @@ export default function Login(){
                                 rules={[
                                     {
                                         required: true,
-                                        message: 'Preencha a senha!',
+                                        message: 'Insira a senha!',
                                     },
                                 ]}
                                 style={{ marginBottom: 30 }}
@@ -92,7 +68,7 @@ export default function Login(){
                             </Form.Item>
 
                             <Form.Item>
-                                <Button className="w-[100%] h-[40px] bg-red-700 drop-shadow-md font-medium text-[20px]" type="primary" htmlType="submit">
+                                <Button loading={loading} className="w-[100%] h-[40px] bg-red-700 drop-shadow-md font-medium text-[20px]" type="primary" htmlType="submit">
                                     Entrar
                                 </Button>
                             </Form.Item>
@@ -100,17 +76,17 @@ export default function Login(){
                         </Form>
 
                         {/* <Row justify="center">
-                            <Link to={"/esqueci-minha-senha"}>
+                            <Link href={"/esqueci-minha-senha"}>
                                 <Typography.Text level={5} style={{ color: '#7E1416' }}>
                                     Esqueceu sua senha?
                                 </Typography.Text>
                             </Link>
                         </Row> */}
-                        </Col>
+                    </Col>
                 </Col>
 
                 <Col className="w-[70%] h-[100%] bg-red-800 rounded-md flex justify-center items-center">
-                    <Image src={logoBg} alt="" className="w-[80%] h-[80%]"/>
+                    <Image src={bgImage} alt="" className="w-[100%] h-[100%] rounded-md"/>
                 </Col>
             </Row>
         </Layout>
