@@ -1,15 +1,15 @@
 "use client"
 import React, { useState } from "react";
 import type { MenuProps } from "antd";
-import { Layout, Menu, Space, Typography, Button, Breadcrumb } from 'antd';
+import { Layout, Menu, Space, Typography, Button } from 'antd';
 import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
-import Estoque from "../Estoque/page";
-import Inicio from '../Inicio/Inicio';
+import Estoque from "../app/Estoque/page";
+import Inicio from '../app/Inicio/page';
 import { useAuth } from "@/context/Auth";
-import '../custom.css';
+import './custom.css';
 import Image from "next/image";
-import Logo from '../../assets/logo-white.png';
+import Logo from '../assets/logo-white.png';
 
 const { Header, Content, Footer, Sider } = Layout;
 

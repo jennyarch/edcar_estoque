@@ -24,9 +24,9 @@ import {
     InboxOutlined,
     DollarOutlined
 } from "@ant-design/icons";
-import ModalScreen from '../components/modalScreen';
+import ModalScreen from '../../components/modalScreen';
 import type { ColumnsType } from 'antd/es/table';
-import FormScreen from '../components/formScreen';
+import FormScreen from '../../components/formScreen';
 import { formatterReal } from '@/utils/formattersTable';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';

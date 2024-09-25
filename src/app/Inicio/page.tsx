@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect } from 'react';
 import { Space, Typography, Col, Row, Badge, Avatar, Skeleton } from 'antd';
 import { HomeOutlined, DropboxOutlined } from '@ant-design/icons';
