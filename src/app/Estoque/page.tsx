@@ -24,13 +24,24 @@ import {
     InboxOutlined,
     DollarOutlined
 } from "@ant-design/icons";
-import ModalScreen from '../../components/modalScreen';
+// import ModalScreen from '../../components/modalScreen';
+// import FormScreen from '../../components/formScreen';
 import type { ColumnsType } from 'antd/es/table';
-import FormScreen from '../../components/formScreen';
+import dynamic from 'next/dynamic';
 import { formatterReal } from '@/utils/formattersTable';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import { useProducts } from '@/context/ProductsProvider';
+
+const ModalScreen = dynamic(() => import('../../components/modalScreen'), {
+    ssr: false,
+    loading: () => <p>Carregando...</p>
+});
+
+const FormScreen = dynamic(() => import('../../components/formScreen'), {
+    ssr: false,
+    loading: () => <p>Carregando...</p>
+});
 
 const { Content } = Layout;
 

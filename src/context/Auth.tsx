@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 import { notification } from "antd";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
@@ -30,9 +30,16 @@ export const useAuth = () => {
 function AuthProvider({ children }: AuthProviderProps){
 
     const [loading, setLoading] = useState(false);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('EDCAR:TOKEN'));
+    const [token, setToken] = useState<string | null>(null);
 
     const router = useRouter();
+
+    useEffect(() => {
+        const initialToken = localStorage.getItem('EDCAR:TOKEN');
+        if (initialToken) {
+            setToken(initialToken);
+        }
+    }, []);
 
     const logout = async () => {
         setLoading(true)
