@@ -484,7 +484,26 @@ export default function Estoque() {
     ];
 
     useEffect(() => {
-        handleProducts()
+        // handleProducts()
+        const fetchProducts = async () => {
+            try {
+                await handleProducts();
+            } catch (err: unknown) {
+                if(err instanceof Error){
+                    notification.error({
+                        message: 'Erro ao carregar os produtos',
+                        description: err.message || 'Erro desconhecido'
+                    });
+                }else{
+                    notification.error({
+                        message: 'Erro ao carregar dados do usuário',
+                        description: 'Erro desconhecido',
+                        duration: 10
+                    });
+                }
+            }
+        };
+        fetchProducts();
     },[]);
 
     const { modalCreate, modalEdit, ModalDelete, modalSell } = modalOpen;
