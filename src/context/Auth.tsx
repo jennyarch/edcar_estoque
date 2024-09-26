@@ -40,7 +40,7 @@ function AuthProvider({ children }: AuthProviderProps){
         if (initialToken) {
             setToken(initialToken);
         }else {
-            router.push('/login');
+            router.push('/Login');
         }
         setIsLoading(false);
     }, []);

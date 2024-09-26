@@ -58,7 +58,7 @@ export const MenuSideBar = () => {
 	};
 
 	return (
-		<LoadingOverlay isLoading={loading}>
+		// <LoadingOverlay isLoading={loading}>
 			<Layout style={{ minHeight: '100vh' }}>
 				<Sider
 					id="siderMenu"
@@ -113,6 +113,6 @@ export const MenuSideBar = () => {
 					</Footer>
 				</Layout>
 			</Layout>
-		</LoadingOverlay>
+		// </LoadingOverlay>
 	);
 }

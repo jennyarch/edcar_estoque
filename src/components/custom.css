@@ -11,6 +11,11 @@
     justify-content: center;
 }
 
+#siderMenu .ant-layout-sider-trigger{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 #siderMenu .ant-menu-item .ant-menu-item-selected{
     background: #a34a48 !important;
 }
