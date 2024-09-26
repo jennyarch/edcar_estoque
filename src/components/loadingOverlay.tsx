@@ -2,7 +2,12 @@ import React, { ReactNode } from 'react';
 import { Spin } from 'antd';
 import './custom.css';
 
-const LoadingOverlay = ( {isLoading}: {isLoading: boolean}, {children}: {children: ReactNode} ) => {
+interface OverlayLoadingType{
+    isLoading: boolean;
+    children: ReactNode;
+}
+
+const LoadingOverlay = ( {isLoading, children}: OverlayLoadingType ) => {
     return (
         <div>
             {isLoading && 

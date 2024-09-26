@@ -27,7 +27,14 @@ export default function Estoque(){
                     <Col span={24}>
                         <Space className='flex flex-row justify-around items-center'>
                             <Badge  count={products.length}>
-                                <Avatar shape="square" size={{ sm: 32, md: 40, lg: 64, xl: 80 }} className='bg-slate-300' icon={<DropboxOutlined className='text-blue-800 text-xxl'/>} />
+                                <Avatar shape="square" size={{
+                                        xs: 32,
+                                        sm: 40,
+                                        md: 40, 
+                                        lg: 64,
+                                        xl: 80, 
+                                        xxl: 100 
+                                    }}  className='bg-slate-300' icon={<DropboxOutlined className='text-blue-800 text-xxl'/>} />
                             </Badge>
                             <Typography className='text-lg font-semibold'>
                                 Produtos

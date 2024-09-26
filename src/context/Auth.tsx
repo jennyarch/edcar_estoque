@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
-import { notification } from "antd";
+import { notification, Spin } from "antd";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "@/services/firebase";
@@ -31,6 +31,7 @@ function AuthProvider({ children }: AuthProviderProps){
 
     const [loading, setLoading] = useState(false);
     const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const router = useRouter();
 
@@ -38,7 +39,10 @@ function AuthProvider({ children }: AuthProviderProps){
         const initialToken = localStorage.getItem('EDCAR:TOKEN');
         if (initialToken) {
             setToken(initialToken);
+        }else {
+            router.push('/login');
         }
+        setIsLoading(false);
     }, []);
 
     const logout = async () => {
@@ -87,6 +91,10 @@ function AuthProvider({ children }: AuthProviderProps){
             setLoading(false);
         }
     };
+
+    if (isLoading) {
+        return <Spin percent='auto' fullscreen />;
+    }
 
     return (
         <AuthContext.Provider value={{ isAuthenticated: !!token, token, login, logout, loading }}>

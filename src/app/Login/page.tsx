@@ -5,12 +5,6 @@ import { useAuth } from "@/context/Auth";
 
 import logo from '../../assets/logo.png';
 import bgImage from '../../assets/bg-ilustration.png';
-import Link from "next/link";
-
-type UserLogin = {
-    email: string;
-    password: string;
-}
 
 export default function Login(){
     
