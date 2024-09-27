@@ -35,12 +35,12 @@ import { useProducts } from '@/context/ProductsProvider';
 
 const ModalScreen = dynamic(() => import('../../components/modalScreen'), {
     ssr: false,
-    loading: () => <Spin />
+    loading: () => <p>Carregando...</p>
 });
 
 const FormScreen = dynamic(() => import('../../components/formScreen'), {
     ssr: false,
-    loading: () => <Spin />
+    loading: () => <p>Carregando...</p>
 });
 
 const { Content } = Layout;

@@ -7,7 +7,7 @@ interface OverlayLoadingType{
     children: ReactNode;
 }
 
-const LoadingOverlay = ( {isLoading, children}: OverlayLoadingType ) => {
+const LoadingOverlay = ({ isLoading, children }: OverlayLoadingType ) => {
     return (
         <div>
             {isLoading && 
