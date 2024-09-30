@@ -2,6 +2,7 @@
 import React, { useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/Auth';
+import { Skeleton } from 'antd';
 
 type ProtectedRouteProps = {
 	children: ReactNode;
@@ -21,7 +22,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 	}, [isAuthenticated, router]);
 
 	if (loading) {
-		return <div>Loading...</div>; // Pode ser um spinner ou qualquer componente de loading
+		return (
+			<Skeleton active={loading} />
+		)
 	}
 
 	return <>{children}</>;

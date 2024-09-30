@@ -69,7 +69,10 @@ export default function Estoque() {
 
     const [loading, setLoading] = useState(false);
 
-    const [form] = Form.useForm();
+    const [formCreate] = Form.useForm();
+    const [formEdit] = Form.useForm();
+    const [formDelete] = Form.useForm();
+    const [formSell] = Form.useForm();
 
     const { products, setProducts, loadingProducts, handleProducts } = useProducts();
 
@@ -92,14 +95,14 @@ export default function Estoque() {
                     ...prevState,
                     modalCreate: true
                 }))
-                form.resetFields()
+                formCreate.resetFields()
                 break;
             case 'venda':
                 setModalOpen(prevState => ({
                     ...prevState,
                     modalSell: true
                 }))
-                form.resetFields()
+                formSell.resetFields()
                 break;
             default:
                 console.log('Ação desconhecida', action);
@@ -581,10 +584,10 @@ export default function Estoque() {
                 isModalOpen={ModalDelete} 
                 loading={loading}
                 handleCancel={() => handleCancel('deletar')}
-                form={form}                
+                form={formDelete}                
             >
                 <FormScreen
-                    form={form}
+                    form={formDelete}
                     formValues={rowData}
                     isDelete={true}
                     isSell={false}
@@ -600,10 +603,10 @@ export default function Estoque() {
                 isModalOpen={modalEdit} 
                 loading={loading} 
                 handleCancel={() => handleCancel('editar')}
-                form={form}                
+                form={formEdit}                
             >
                 <FormScreen
-                    form={form}
+                    form={formEdit}
                     formValues={rowData}
                     isDelete={false}
                     isSell={false}
@@ -618,10 +621,10 @@ export default function Estoque() {
                 isModalOpen={modalCreate} 
                 loading={loading} 
                 handleCancel={() => handleCancel('criar')}
-                form={form}                
+                form={formCreate}                
             >
                 <FormScreen
-                    form={form}
+                    form={formCreate}
                     formValues={null}
                     isDelete={false}
                     isSell={false}
@@ -636,10 +639,10 @@ export default function Estoque() {
                 isModalOpen={modalSell} 
                 loading={loading} 
                 handleCancel={() => handleCancel('venda')}
-                form={form}                
+                form={formSell}                
             >
                 <FormScreen
-                    form={form}
+                    form={formSell}
                     formValues={rowData}
                     isDelete={true}
                     isSell={true}

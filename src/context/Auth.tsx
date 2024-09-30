@@ -1,8 +1,9 @@
+'use client'
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
-import { notification, Spin } from "antd";
+import { notification, Skeleton } from "antd";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, db } from "@/services/firebase";
+import { auth } from "@/services/firebase";
 
 type UserLogin = {
     email: string;
@@ -35,14 +36,21 @@ function AuthProvider({ children }: AuthProviderProps){
 
     const router = useRouter();
 
-    useEffect(() => {
+    const checkValidToken = () => {
         const initialToken = localStorage.getItem('EDCAR:TOKEN');
+
         if (initialToken) {
             setToken(initialToken);
         }else {
             router.push('/Login');
         }
+
         setIsLoading(false);
+    }
+
+
+    useEffect(() => {
+        checkValidToken()
     }, []);
 
     const logout = async () => {
@@ -57,7 +65,7 @@ function AuthProvider({ children }: AuthProviderProps){
 
             setToken(null);
             
-            router.push('/login');
+            router.push('/Login');
         } catch (error) {
             notification.error({
                 message: 'Erro ao deslogar',
@@ -92,16 +100,14 @@ function AuthProvider({ children }: AuthProviderProps){
         }
     };
 
-    if (isLoading) {
-        return <Spin percent='auto' fullscreen />;
-    }
-
     return (
-        <AuthContext.Provider value={{ isAuthenticated: !!token, token, login, logout, loading }}>
-            {children}
-        </AuthContext.Provider>
+        isLoading ? 
+            <Skeleton active={loading} />
+        :
+            <AuthContext.Provider value={{ isAuthenticated: !!token, token, login, logout, loading }}>
+                {children}
+            </AuthContext.Provider>
     );
-
 }
 
 export { AuthContext, AuthProvider };

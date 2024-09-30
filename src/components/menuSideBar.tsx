@@ -6,7 +6,6 @@ import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
 import Estoque from "../app/Estoque/page";
 import Inicio from '../app/Inicio/page';
-import LoadingOverlay from "./loadingOverlay";
 import { useAuth } from "@/context/Auth";
 import './custom.css';
 import Image from "next/image";
@@ -58,61 +57,59 @@ export const MenuSideBar = () => {
 	};
 
 	return (
-		// <LoadingOverlay isLoading={loading}>
-			<Layout style={{ minHeight: '100vh' }}>
-				<Sider
-					id="siderMenu"
-					collapsible
-					collapsed={false} //Para evitar o Sider de collapsar
-					trigger={
-						<Button
-							type="primary"
-							icon={<LogoutOutlined />}
-							loading={loading}
-							style={{
-								width: '80%',
-								background: '#991b1b',
-								border: 'none',
-								height: '32px',
-							}}
-						>
-							Sair
-						</Button>
+		<Layout style={{ minHeight: '100vh' }}>
+			<Sider
+				id="siderMenu"
+				collapsible
+				collapsed={false} //Para evitar o Sider de collapsar
+				trigger={
+					<Button
+						type="primary"
+						icon={<LogoutOutlined />}
+						loading={loading}
+						style={{
+							width: '80%',
+							background: '#991b1b',
+							border: 'none',
+							height: '32px',
+						}}
+					>
+						Sair
+					</Button>
+				}
+				onCollapse={(collapsed) => {
+					if (collapsed) {
+						logout();
 					}
-					onCollapse={(collapsed) => {
-						if (collapsed) {
-							logout();
-						}
-					}}
-					
-				>
-					<Space className="flex flex-col justify-center bg-[#991b1b] p-2 min-h-2 mb-2">
-						<Image src={Logo} alt="Logotipo Ed Car" layout="responsive"/>
-					</Space>
-					<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-				</Sider>
+				}}
+				
+			>
+				<Space className="flex flex-col justify-center bg-[#991b1b] p-2 min-h-2 mb-2">
+					<Image src={Logo} alt="Logotipo Ed Car" layout="responsive"/>
+				</Space>
+				<Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
+			</Sider>
 
-				<Layout>
-					<Header className='flex flex-row justify-between bg-white h-[80px] pt-[10px] pb-0 items-center'>
-						<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 10 }}>
-							<Space style={{ display: "block", marginTop: 20, marginRight: 20, marginBottom: 20 }}>
-								<Typography.Title level={5} >
-									Olá, seja bem vindo!
-								</Typography.Title>
-							</Space>
+			<Layout>
+				<Header className='flex flex-row justify-between bg-white h-[80px] pt-[10px] pb-0 items-center'>
+					<Space className='flex' style={{ display: "flex", alignItems: "center", gap: 30, paddingLeft: 10 }}>
+						<Space style={{ display: "block", marginTop: 20, marginRight: 20, marginBottom: 20 }}>
+							<Typography.Title level={5} >
+								Olá, seja bem vindo!
+							</Typography.Title>
 						</Space>
-						<UsuarioLogado/>
-					</Header>
+					</Space>
+					<UsuarioLogado/>
+				</Header>
 
-					<Content className='h-[100%] mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
-						{renderContent()}
-					</Content>
+				<Content className='h-[100%] mt-[10px] mb-[16px] ml-[16px] mr-[16px]'>
+					{renderContent()}
+				</Content>
 
-					<Footer style={{ textAlign: 'center' }}>
-						©{new Date().getFullYear()} Created by Jennyfer Sampaio
-					</Footer>
-				</Layout>
+				<Footer style={{ textAlign: 'center' }}>
+					©{new Date().getFullYear()} Created by Jennyfer Sampaio
+				</Footer>
 			</Layout>
-		// </LoadingOverlay>
+		</Layout>
 	);
 }
