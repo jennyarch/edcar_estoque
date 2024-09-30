@@ -35,6 +35,8 @@ const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
             const querySnapshot = await getDocs(collection(db, "products"));
 
             if(querySnapshot.empty){
+                setProducts([])
+                setFinishLoading(false)
                 return
             }
 

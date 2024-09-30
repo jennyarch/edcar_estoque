@@ -26,7 +26,7 @@ export default function Estoque(){
                 <Row className='mt-5'>
                     <Col span={24}>
                         <Space className='flex flex-row justify-around items-center'>
-                            <Badge  count={products.length}>
+                            <Badge count={products ? products.length : 0} showZero>
                                 <Avatar shape="square" size={{
                                         xs: 32,
                                         sm: 40,
