@@ -14,7 +14,7 @@ import {
     Dropdown,
     MenuProps,
     Tooltip,
-    Spin
+    List
 } from "antd";
 import {
     SearchOutlined,
@@ -23,12 +23,11 @@ import {
     EditOutlined,
     DeleteOutlined,
     InboxOutlined,
-    DollarOutlined
+    DollarOutlined,
 } from "@ant-design/icons";
 
 import type { ColumnsType } from 'antd/es/table';
 import dynamic from 'next/dynamic';
-import { formatterReal } from '@/utils/formattersTable';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import { useProducts } from '@/context/ProductsProvider';
@@ -49,11 +48,14 @@ interface DataType {
     id: string;
     codigo: string;
     nome: string;
+    modelo: string;
+    descricao: string;
+    medidas: string;
     qtdEstoque: string;
     valor: number;
 }
 
-export default function Estoque() {
+export default function Diafragma(){
 
     const [rowId, setRowId] = useState<DataType | null>(null);
     const [rowData, setRowData] = useState<DataType | null>(null);
@@ -97,7 +99,7 @@ export default function Estoque() {
                 }))
                 formCreate.resetFields()
                 break;
-            case 'venda':
+            case 'baixa':
                 setModalOpen(prevState => ({
                     ...prevState,
                     modalSell: true
@@ -130,7 +132,7 @@ export default function Estoque() {
                     modalCreate: false
                 }))
                 break;
-            case 'venda':
+            case 'baixa':
                 setModalOpen(prevState => ({
                     ...prevState,
                     modalSell: false
@@ -155,6 +157,9 @@ export default function Estoque() {
         const body = {
             codigo: newProduct.codigo,
             nome: newProduct.nome,
+            modelo: newProduct.modelo,
+            descricao: newProduct.descricao !== '' ? newProduct.descricao : null,
+            medidas: newProduct.medidas,
             qtdEstoque: newProduct.qtdEstoque,
             valor: valorFormatted
         };
@@ -253,7 +258,7 @@ export default function Estoque() {
     async function handleSellProduct(products: any) {
         setLoading(true);
 
-        const quantitySold = parseInt(products.venda);
+        const quantitySold = parseInt(products.baixa);
 
         const productId = rowId?.id;
 
@@ -295,20 +300,20 @@ export default function Estoque() {
             }))
     
             notification.success({
-                message: 'Venda realizada com sucesso.',
+                message: 'Baixa realizada com sucesso.',
                 description: `Quantidade restante em estoque: ${updatedQtdEstoque}`,
                 duration: 10,
             });
         } catch (err: unknown) {
             if (err instanceof Error) {
                 notification.error({
-                    message: 'Erro ao processar a venda',
+                    message: 'Erro ao processar a baixa',
                     description: err.message,
                     duration: 10,
                 });
             } else {
                 notification.error({
-                    message: 'Erro desconhecido ao processar a venda',
+                    message: 'Erro desconhecido ao processar a baixa',
                     duration: 10,
                 });
             }
@@ -396,7 +401,15 @@ export default function Estoque() {
         {
             label: 'Código',
             key: 'código'
-        }
+        },
+        {
+            label: 'Modelo',
+            key: 'modelo'
+        },
+        {
+            label: 'Medidas',
+            key: 'medidas'
+        },
     ];
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
@@ -442,16 +455,84 @@ export default function Estoque() {
             align: 'center',
         },
         {
-            title: 'Valor(Unitário)',
-            dataIndex: 'valor',
-            key: 'valor',
+            title: (
+                <Space className='flex flex-row justify-center'>
+                    <Tooltip title="Modelo do carro que o diafragma suporta">
+                        <Typography>Modelo</Typography>
+                    </Tooltip>
+                    {keySelected === 'modelo' && 
+                        <Tooltip title={`Busca por ${keySelected}`}>
+                            <FilterOutlined className='text-red-700'/>
+                        </Tooltip>
+                    }
+                </Space>
+            ),
+            dataIndex: 'modelo',
+            key: 'modelo',
             align: 'center',
-            render: (value, dados) => (
+            width: 150,
+            render: (text: string, dados: any) => (
+                text.includes(',') ? (
+                    <List
+                        size="small"
+                        bordered
+                        dataSource={text.split(',')}
+                        renderItem={(item: string) => <List.Item>{item}</List.Item>}
+                    />
+                ) : (
+                    <Typography.Text>{text}</Typography.Text>
+                )
+            )
+        },
+        {
+            title: (
+                <Space className='flex flex-row justify-center'>
+                    <Typography>Descrição</Typography>
+                    {keySelected === 'descrição' && 
+                        <Tooltip title={`Busca por ${keySelected}`}>
+                            <FilterOutlined className='text-red-700'/>
+                        </Tooltip>
+                    }
+                </Space>
+            ),
+            dataIndex: 'descricao',
+            key: 'descricao',
+            align: 'center',
+            render: (text, dados) => (
+                <Typography>{text !== null ? text : '-'}</Typography>
+            )
+        },
+        {
+            title: (
+                <Space className='flex flex-row justify-center'>
+                    <Typography>Medidas(mm)</Typography>
+                    {keySelected === 'medidas' && 
+                        <Tooltip title={`Busca por ${keySelected}`}>
+                            <FilterOutlined className='text-red-700'/>
+                        </Tooltip>
+                    }
+                </Space>
+            ),
+            dataIndex: 'medidas',
+            key: 'medidas',
+            align: 'center',
+            render: (text, dados) => (
                 <Typography>
-                    {formatterReal(value)}
+                    {text}mm
                 </Typography>
             )
         },
+        // {
+        //     title: 'Valor(Unitário)',
+        //     dataIndex: 'valor',
+        //     key: 'valor',
+        //     align: 'center',
+        //     render: (value, dados) => (
+        //         <Typography>
+        //             {formatterReal(value)}
+        //         </Typography>
+        //     )
+        // },
         {
             title: 'Qtd Estoque',
             dataIndex: 'qtdEstoque',
@@ -488,7 +569,7 @@ export default function Estoque() {
                         type="text" 
                         icon={<DollarOutlined className="text-xl text-green-500" />}
                         onClick={() => {
-                            showModal('venda')
+                            showModal('baixa')
                             setRowId(dados)
                         }} 
                     />
@@ -528,7 +609,7 @@ export default function Estoque() {
         <Content className='p-[20px] h-[100%] w-[100%] rounded-xl bg-white flex flex-col items-start'>
             <Typography.Title level={5} className='text-xl text-red-700 font-bold flex gap-2'>
                 <InboxOutlined/>
-                Estoque
+                Diafragma
             </Typography.Title>
 
             <Row className='mt-10 w-[100%] flex flex-row justify-between'>
@@ -591,6 +672,7 @@ export default function Estoque() {
                     formValues={rowData}
                     isDelete={true}
                     isSell={false}
+                    isDiafragma={true}
                     onFinish={deleteProduct}
                 />
 
@@ -610,6 +692,7 @@ export default function Estoque() {
                     formValues={rowData}
                     isDelete={false}
                     isSell={false}
+                    isDiafragma={true}
                     onFinish={updateProduct}
                 />
 
@@ -628,17 +711,18 @@ export default function Estoque() {
                     formValues={null}
                     isDelete={false}
                     isSell={false}
+                    isDiafragma={true}
                     onFinish={addProduct}
                 />
 
             </ModalScreen>
 
             <ModalScreen 
-                title={'Venda do Produto'}
-                btnAction={'Confirmar Venda'} 
+                title={'Baixa do Produto'}
+                btnAction={'Confirmar Baixa'} 
                 isModalOpen={modalSell} 
                 loading={loading} 
-                handleCancel={() => handleCancel('venda')}
+                handleCancel={() => handleCancel('baixa')}
                 form={formSell}                
             >
                 <FormScreen
@@ -646,6 +730,7 @@ export default function Estoque() {
                     formValues={rowData}
                     isDelete={true}
                     isSell={true}
+                    isDiafragma={true}
                     onFinish={handleSellProduct}
                 />
 

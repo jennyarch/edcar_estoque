@@ -14,36 +14,36 @@ interface DataType {
     valor: number;
 }
 
-interface ProductContextType {
-    products: DataType[];
-    setProducts: React.Dispatch<React.SetStateAction<DataType[]>>;
-    handleProducts: () => void;
-    loadingProducts: boolean;
+interface PartContextType {
+    parts: DataType[];
+    setParts: React.Dispatch<React.SetStateAction<DataType[]>>;
+    handleParts: () => void;
+    loadingParts: boolean;
     finishLoading: boolean;
 }
 
-const ProductsContext = createContext<ProductContextType>({} as ProductContextType);
+const PartsContext = createContext<PartContextType>({} as PartContextType);
 
-export const useProducts = () => useContext(ProductsContext);
+export const useParts = () => useContext(PartsContext);
 
-const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
-    const [products, setProducts] = useState<DataType[]>([]);
+const PartsProvider = ({ children }: { children: React.ReactNode }) => {
+    const [parts, setParts] = useState<DataType[]>([]);
     const [finishLoading, setFinishLoading] = useState(true);
-    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [loadingParts, setLoadingParts] = useState(false);
 
-    const handleProducts = async () => {
-        setLoadingProducts(true);
+    const handleParts = async () => {
+        setLoadingParts(true);
 
         try {
-            const querySnapshot = await getDocs(collection(db, "products"));
+            const querySnapshot = await getDocs(collection(db, "parts"));
 
             if(querySnapshot.empty){
-                setProducts([])
+                setParts([])
                 setFinishLoading(false)
                 return
             }
 
-            const products: DataType[] = querySnapshot.docs.map(doc => ({
+            const parts: DataType[] = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 codigo: doc.data().codigo,
                 nome: doc.data().nome,
@@ -54,7 +54,7 @@ const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
                 valor: doc.data().valor,
             }));
 
-            setProducts(products);
+            setParts(parts);
             setFinishLoading(false)
 
         } catch (err: unknown) {
@@ -72,17 +72,17 @@ const ProductsProvider = ({ children }: { children: React.ReactNode }) => {
                 });
             }
         }finally {
-            setLoadingProducts(false);
+            setLoadingParts(false);
         }
     };
 
     return (
-        <ProductsContext.Provider value={{ products, setProducts, handleProducts, loadingProducts, finishLoading }}>
+        <PartsContext.Provider value={{ parts, setParts, handleParts, loadingParts, finishLoading }}>
             {children}
-        </ProductsContext.Provider>
+        </PartsContext.Provider>
     );
 };
 
-export { ProductsContext, ProductsProvider }
+export { PartsContext, PartsProvider }
 
 

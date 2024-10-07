@@ -27,7 +27,7 @@ const ModalScreen: React.FC<ModalScreenProps> = ({ title, btnAction, isModalOpen
         styleBtnAction = 'bg-red-500 hover:!bg-red-600';
         styleTitle = 'text-red-700 text-lg';
     }
-    if(btnAction === 'Confirmar Venda'){
+    if(btnAction === 'Confirmar Baixa'){
         styleBtnAction = 'bg-green-500 hover:!bg-green-600';
         styleTitle = 'text-green-700 text-lg';
     }

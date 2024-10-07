@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/Auth";
 import { ProductsProvider } from "@/context/ProductsProvider";
+import { PartsProvider} from '@/context/PartsProvider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,7 +13,9 @@ export default function RootLayout({ children}: Readonly<{ children: React.React
       <body className={inter.className}>
         <AuthProvider>
           <ProductsProvider>
-            {children}
+            <PartsProvider>
+              {children}
+            </PartsProvider>
           </ProductsProvider>
         </AuthProvider>
       </body>

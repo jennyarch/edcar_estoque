@@ -1,15 +1,16 @@
 "use client"
 import React, { useState } from "react";
 import type { MenuProps } from "antd";
-import { Layout, Menu, Space, Typography, Button, Spin } from 'antd';
-import { HomeOutlined, InboxOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Menu, Space, Typography, Button } from 'antd';
+import { HomeOutlined, InboxOutlined, LogoutOutlined, ProductOutlined } from '@ant-design/icons';
 import UsuarioLogado from "./usuarioLogado";
-import Estoque from "../app/Estoque/page";
 import Inicio from '../app/Inicio/page';
 import { useAuth } from "@/context/Auth";
 import './custom.css';
 import Image from "next/image";
 import Logo from '../assets/logo-white.png';
+import Diafragma from "@/app/Diafragma/page";
+import Pecas from "@/app/Pecas/page";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -38,9 +39,14 @@ export const MenuSideBar = () => {
 		getItem('Inicio', '1', <HomeOutlined />, undefined, () => {
 			setSelectedKey('1'); 
 		}),
-		getItem('Estoque', '2', <InboxOutlined />, undefined, () => {
-			setSelectedKey('2');
-		})
+		getItem('Estoque', 'subItem', <InboxOutlined />, [
+			getItem('Diafragma', '3', <ProductOutlined />, undefined, () => {
+				setSelectedKey('3');
+			}),
+			getItem('Peças', '4', <ProductOutlined />, undefined, () => {
+				setSelectedKey('4');
+			}),
+		])
 	];
 
 	const [selectedKey, setSelectedKey] = useState('1');
@@ -49,8 +55,10 @@ export const MenuSideBar = () => {
 		switch(selectedKey){
 			case '1':
 				return <Inicio/>
-			case '2':
-				return <Estoque/>
+			case '3':
+				return <Diafragma/>
+			case '4':
+				return <Pecas/>
 			default:
 				return <Inicio/>;
 		}
