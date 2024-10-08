@@ -222,6 +222,9 @@ export default function Pecas(){
             await updateDoc(partRef, {
                 codigo: updatePart.codigo,
                 nome: updatePart.nome,
+                modelo: updatePart.modelo,
+                medidas: updatePart.medidas,
+                descricao: updatePart.descricao,
                 qtdEstoque: updatePart.qtdEstoque,
                 valor: valorFormatted
             });
@@ -385,7 +388,11 @@ export default function Pecas(){
                 }
 
                 if(keySelected === 'código'){
-                    return item.codigo.includes(searchValue)
+                    return item.codigo.toLowerCase().includes(searchValue)
+                }
+
+                if(keySelected === 'modelo'){
+                    return item.modelo.toLowerCase().includes(searchValue)
                 }
 
                 return false;
@@ -406,11 +413,7 @@ export default function Pecas(){
         {
             label: 'Modelo',
             key: 'modelo'
-        },
-        {
-            label: 'Medidas',
-            key: 'medidas'
-        },
+        }
     ];
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {

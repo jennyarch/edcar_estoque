@@ -198,6 +198,7 @@ export default function Diafragma(){
 
     async function updateProduct(updateProduct: DataType){
         setLoading(true);
+
         let valorFormatted = updateProduct.valor;
 
         if(rowData?.valor !== updateProduct.valor){
@@ -221,6 +222,9 @@ export default function Diafragma(){
             await updateDoc(productRef, {
                 codigo: updateProduct.codigo,
                 nome: updateProduct.nome,
+                modelo: updateProduct.modelo,
+                medidas: updateProduct.medidas,
+                descricao: updateProduct.descricao,
                 qtdEstoque: updateProduct.qtdEstoque,
                 valor: valorFormatted
             });
@@ -384,7 +388,11 @@ export default function Diafragma(){
                 }
 
                 if(keySelected === 'código'){
-                    return item.codigo.includes(searchValue)
+                    return item.codigo.toLowerCase().includes(searchValue)
+                }
+
+                if(keySelected === 'modelo'){
+                    return item.modelo.toLowerCase().includes(searchValue)
                 }
 
                 return false;
@@ -405,11 +413,7 @@ export default function Diafragma(){
         {
             label: 'Modelo',
             key: 'modelo'
-        },
-        {
-            label: 'Medidas',
-            key: 'medidas'
-        },
+        }
     ];
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
