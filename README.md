@@ -1,97 +1,204 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🚗 EdCar Estoque
 
-## Getting Started
+Sistema web desenvolvido para gerenciamento de estoque de uma loja de autopeças, permitindo o controle de produtos, movimentação de estoque e gestão de preços de venda de forma simples, rápida e intuitiva.
 
-First, run the development server:
+O projeto foi desenvolvido utilizando **Next.js**, **TypeScript**, **Tailwind CSS**, **Ant Design** e **Firebase**, seguindo uma arquitetura moderna voltada para escalabilidade, organização do código e boa experiência do usuário.
+
+---
+
+## 📋 Sobre o Projeto
+
+O **EdCar Estoque** nasceu da necessidade de informatizar o processo de controle de estoque de uma loja de autopeças, eliminando controles manuais e reduzindo erros relacionados à entrada, saída e precificação de produtos.
+
+A aplicação oferece uma interface moderna e responsiva para facilitar as operações diárias do estabelecimento.
+
+---
+
+## ✨ Funcionalidades
+
+* Tela de Login com autenticação de usuários
+* Cadastro de produtos
+* Edição de produtos
+* Exclusão de produtos
+* Consulta rápida de produtos
+* Controle de entrada e saída de estoque
+* Baixa de produtos através de modal
+* Controle de preços de venda
+* Atualização automática do estoque
+* Interface responsiva
+* Feedback visual durante as operações
+
+---
+
+## 🛠 Tecnologias
+
+| Tecnologia   | Descrição                                |
+| ------------ | ---------------------------------------- |
+| Next.js      | Framework React para aplicações modernas |
+| React        | Biblioteca para construção da interface  |
+| TypeScript   | Tipagem estática para maior segurança    |
+| Tailwind CSS | Framework utilitário para estilização    |
+| Ant Design   | Biblioteca de componentes UI             |
+| Firebase     | Banco de dados e serviços em nuvem       |
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+│
+├── app/                # Rotas da aplicação (App Router)
+├── components/         # Componentes reutilizáveis
+├── services/           # Comunicação com Firebase
+├── hooks/              # Hooks customizados
+├── types/              # Tipagens TypeScript
+├── utils/              # Funções auxiliares
+├── styles/             # Estilos globais
+└── assets/             # Recursos estáticos
+```
+
+> A organização segue o conceito de separação de responsabilidades, facilitando manutenção, escalabilidade e reutilização de código.
+
+---
+
+## 🚀 Como executar o projeto
+
+### Clone o repositório
+
+```bash
+git clone https://github.com/jennyarch/edcar_estoque.git
+```
+
+Entre na pasta do projeto
+
+```bash
+cd edcar_estoque
+```
+
+Instale as dependências
+
+```bash
+npm install
+```
+
+ou
+
+```bash
+yarn
+```
+
+Configure as variáveis de ambiente criando um arquivo `.env.local`.
+
+Exemplo:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
+
+Execute o projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação estará disponível em
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+---
 
-## Learn More
+## ⚙️ Scripts disponíveis
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Inicia o ambiente de desenvolvimento.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+npm run build
+```
 
-## Deploy on Vercel
+Gera a versão de produção.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Executa a aplicação em modo de produção.
 
-Projeto: Sistema de Gestão de Autopeças
+```bash
+npm run lint
+```
 
-Introdução
+Realiza análise estática do código.
 
-Este projeto consiste no desenvolvimento de um sistema de gestão para uma loja de autopeças, com foco em resolver a falta de controle sobre o estoque e os preços de venda dos produtos. A solução foi pensada para automatizar e otimizar os processos da loja, trazendo mais eficiência e praticidade para o gerenciamento dos itens.
+---
 
+## 🎯 Objetivos do Projeto
 
+* Automatizar o controle de estoque.
+* Centralizar o gerenciamento de produtos.
+* Melhorar o controle de preços.
+* Reduzir erros operacionais.
+* Facilitar a rotina da loja.
+* Proporcionar uma experiência intuitiva ao usuário.
 
-Objetivos
+---
 
-* Controle de Estoque: Oferecer um sistema para monitorar a entrada e saída de produtos de forma automática e eficiente.
+## 💡 Diferenciais
 
-* Gestão de Preços: Controlar os preços de venda, garantindo atualizações rápidas e precisas.
+* Interface moderna utilizando Ant Design.
+* Estilização responsiva com Tailwind CSS.
+* Código totalmente desenvolvido em TypeScript.
+* Integração com Firebase para persistência dos dados.
+* Componentização visando reutilização e manutenção.
+* Estrutura preparada para futuras funcionalidades.
 
-* Facilidade de Uso: Integrar um modal para realizar a baixa de produtos com fluidez, sem complicações para o usuário.
+---
 
-* Operações CRUD Completo: Implementar funcionalidades de criação, leitura, atualização e exclusão de produtos.
+## 🔒 Variáveis de Ambiente
 
+Por questões de segurança, o projeto não versiona arquivos `.env`.
 
+Utilize um arquivo `.env.local` baseado no exemplo acima para configurar as credenciais do Firebase.
 
-Funcionalidades
+---
 
-* Gerenciamento de Produtos: Cadastro, edição e exclusão de produtos no estoque.
+## 📈 Melhorias Futuras
 
-* Controle de Baixa: Modal dedicado para realizar a baixa de produtos de forma simplificada e rápida.
+* Controle de usuários e permissões.
+* Dashboard com indicadores.
+* Relatórios em PDF.
+* Histórico de movimentações.
+* Exportação para Excel.
+* Controle de fornecedores.
+* Cadastro de clientes.
+* Controle financeiro.
+* Notificações de estoque mínimo.
 
-* Relatórios e Consultas: Permite a consulta rápida de informações sobre os produtos, estoques disponíveis e preços.
+---
 
+## 🤝 Contribuições
 
+Contribuições são bem-vindas.
 
- Tecnologias Utilizadas
+Caso encontre algum problema ou tenha sugestões de melhorias, fique à vontade para abrir uma **Issue** ou enviar um **Pull Request**.
 
-* Next.js: Framework React utilizado para construção de interfaces dinâmicas e com ótimo desempenho.
+---
 
-* TypeScript: Linguagem tipada que garante mais segurança no desenvolvimento, evitando erros comuns de JavaScript.
+## 👩‍💻 Desenvolvido por
 
-* Tailwind CSS: Framework de estilização utilitário para criar interfaces de usuário modernas e responsivas.
+**Jennyfer Sampaio**
 
-* Ant Design: Biblioteca de componentes que facilita a criação de interfaces com uma aparência profissional e consistente.
+Frontend Developer
 
-* Firebase: Utilizado como banco de dados para armazenamento em tempo real, garantindo escalabilidade e segurança dos dados.
-
-
-
-Destaques do Projeto
-
-* UX aprimorada: O uso de modais simplificou processos, tornando o sistema mais fluido e intuitivo.
-
-* Desempenho: Com o Next.js, o sistema oferece uma experiência de usuário rápida e eficiente, além de otimizar o SEO.
-
-* Estilização Moderna: Tailwind CSS foi usado para garantir uma interface visualmente atraente, responsiva e adaptável.
-
-* Segurança e Escalabilidade: O Firebase oferece um backend seguro e escalável para armazenar dados de produtos e transações.
-
-
-
-Conclusão
-
-Este projeto traz uma solução robusta para o gerenciamento de produtos em lojas de autopeças, garantindo uma interface intuitiva e funcionalidades que permitem maior controle e automação dos processos. O uso de tecnologias modernas como Next.js, TypeScript, Ant Design, Tailwind CSS e Firebase assegura que o sistema seja eficiente, seguro e escalável para futuras expansões.
-
+GitHub: https://github.com/jennyarch
