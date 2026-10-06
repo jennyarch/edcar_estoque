@@ -1,0 +1,134 @@
+// Schema Prisma do EdCar Estoque.
+// O runtime da aplicação usa supabase-js; o Prisma é usado para modelar e
+// validar o schema do banco (npm run db:validate) e como referência de tipos.
+// As tabelas são criadas por supabase/migrations/*.sql.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas  = ["public", "auth"]
+}
+
+// ---------------------------------------------------------------------------
+// Domínio do estoque (public)
+// ---------------------------------------------------------------------------
+
+enum Categoria {
+  diafragma
+  pecas
+
+  @@map("categoria")
+  @@schema("public")
+}
+
+enum TipoMovimento {
+  entrada
+  baixa
+  ajuste
+
+  @@map("tipo_movimento")
+  @@schema("public")
+}
+
+/// Dados do cadastro do usuário. Criado pelo trigger `on_auth_user_created`
+/// (migration 0002) a partir de `auth.users` + `user_metadata`.
+model Profile {
+  id        String   @id @db.Uuid
+  nome      String   @default("")
+  email     String?
+  telefone  String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  @@index([nome])
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Item {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoria   Categoria
+  codigo      String
+  nome        String
+  modelo      String
+  descricao   String?
+  medidas     Int
+  qtdEstoque  Int      @default(0) @map("qtd_estoque")
+  valor       Decimal? @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  movimentos StockMovement[]
+
+  @@index([categoria, nome])
+  @@map("items")
+  @@schema("public")
+}
+
+model StockMovement {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  itemId         String        @map("item_id") @db.Uuid
+  tipo           TipoMovimento
+  quantidade     Int
+  saldoAnterior  Int?          @map("saldo_anterior")
+  saldoPosterior Int?          @map("saldo_posterior")
+  userId         String?       @map("user_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([createdAt(sort: Desc)])
+  @@map("stock_movements")
+  @@schema("public")
+}
+
+// ---------------------------------------------------------------------------
+// Sessão Supabase Auth (auth) — somente leitura/documentação.
+// Gerenciada pelo Supabase Auth; o app não escreve nessas tabelas.
+// ---------------------------------------------------------------------------
+
+/// `auth.users` — conta do usuário. O app lê apenas via Supabase Auth.
+model AuthUser {
+  id                String    @id @db.Uuid
+  aud               String?
+  role              String?
+  email             String?
+  encryptedPassword String?   @map("encrypted_password")
+  emailConfirmedAt  DateTime? @map("email_confirmed_at") @db.Timestamptz()
+  phone             String?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+  rawUserMeta       Json?     @map("raw_user_meta_data")
+  rawAppMeta        Json?     @map("raw_app_meta_data")
+
+  sessoes AuthSession[]
+
+  @@map("users")
+  @@schema("auth")
+}
+
+/// `auth.sessions` — uma linha por sessão ativa (cookie do app).
+/// É para onde aponta o cookie `sb-<projeto>-auth-token`.
+model AuthSession {
+  id         String    @id @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+  notAfter   DateTime? @map("not_after") @db.Timestamptz()
+  refreshedAt DateTime? @map("refreshed_at") @db.Timestamptz()
+  userAgent  String?   @map("user_agent")
+  ip         String?
+
+  usuario AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+  @@schema("auth")
+}

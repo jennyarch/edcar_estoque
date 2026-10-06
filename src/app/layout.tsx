@@ -1,24 +1,25 @@
-"use client"
-import { Inter } from "next/font/google";
+import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/context/Auth";
-import { ProductsProvider } from "@/context/ProductsProvider";
-import { PartsProvider} from '@/context/PartsProvider';
+import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ subsets: ["latin"] });
+export const metadata: Metadata = {
+  title: {
+    default: "EdCar Estoque",
+    template: "%s · EdCar Estoque",
+  },
+  description:
+    "Sistema interno de controle de estoque da loja EdCar — diafragmas e peças de reposição do hidrovácuo.",
+};
 
-export default function RootLayout({ children}: Readonly<{ children: React.ReactNode;}>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <ProductsProvider>
-            <PartsProvider>
-              {children}
-            </PartsProvider>
-          </ProductsProvider>
-        </AuthProvider>
+    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
-  ) 
+  );
 }
