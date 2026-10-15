@@ -13,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
+import { obterAccessToken } from "@/lib/supabase/client";
 import type { Item } from "@/types/item";
 
 interface ConfirmDeleteDialogProps {
@@ -30,9 +32,16 @@ export function ConfirmDeleteDialog({
 
   function onConfirm() {
     startTransition(async () => {
-      const resultado = await deleteItem(item.id);
+      const token = await obterAccessToken();
+      if (!token) {
+        toast.error("Sessão expirada. Entre novamente para continuar.");
+        return;
+      }
+
+      const resultado = await deleteItem(token, item.id);
 
       if (resultado.ok) {
+        notificarAtualizacaoEstoque();
         toast.success(`"${item.nome}" removido do estoque.`);
         onOpenChange(false);
         return;

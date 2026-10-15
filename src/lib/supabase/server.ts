@@ -1,31 +1,26 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 /**
- * Cliente Supabase no servidor (Server Components, Server Actions e Route Handlers).
- * A sessão vive nos cookies; as mudanças são aplicadas via `setAll`.
+ * Cliente Supabase no servidor para operações RLS (Server Actions).
+ * O access token vem da sessão em localStorage no navegador e é enviado
+ * junto à chamada; aqui ele vira o header `Authorization` — sem cookies,
+ * sem refresh de sessão no servidor.
  */
-export async function createClient() {
+export function criarClienteAutenticado(accessToken: string) {
   const { url, publishableKey } = getSupabaseEnv();
-  const cookieStore = await cookies();
 
-  return createServerClient<Database>(url, publishableKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
+  return createSupabaseClient<Database>(url, publishableKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        } catch {
-          // cookies() só pode ser escrito em Server Actions / Route Handlers.
-          // Em Server Components o refresh é feito no proxy/middleware.
-        }
-      },
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }

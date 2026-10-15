@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
+import { obterAccessToken } from "@/lib/supabase/client";
 import { maskBRL, onlyDigits } from "@/lib/format";
 import { itemFormSchema, type ItemFormValues } from "@/lib/validators";
 import type { Categoria, Item } from "@/types/item";
@@ -79,11 +81,18 @@ export function ItemFormDialog({
 
   function onSubmit(values: ItemFormValues) {
     startTransition(async () => {
+      const token = await obterAccessToken();
+      if (!token) {
+        toast.error("Sessão expirada. Entre novamente para continuar.");
+        return;
+      }
+
       const resultado = ehEdicao
-        ? await updateItem(item.id, categoria, values)
-        : await createItem(categoria, values);
+        ? await updateItem(token, item.id, categoria, values)
+        : await createItem(token, categoria, values);
 
       if (resultado.ok) {
+        notificarAtualizacaoEstoque();
         toast.success(ehEdicao ? "Item atualizado." : "Item cadastrado.");
         onOpenChange(false);
         return;

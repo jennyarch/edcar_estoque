@@ -1,16 +1,32 @@
-import { requireUser } from "@/lib/auth";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { Header } from "@/components/dashboard/header";
+import { CarregandoTela } from "@/components/loading-screen";
+import { useSessao } from "@/components/session/session-provider";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const perfil = await requireUser();
+  const { carregando, perfil } = useSessao();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!carregando && !perfil) {
+      router.replace("/login");
+    }
+  }, [carregando, perfil, router]);
+
+  if (carregando || !perfil) {
+    return <CarregandoTela />;
+  }
 
   return (
     <SidebarProvider>

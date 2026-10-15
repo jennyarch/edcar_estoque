@@ -11,7 +11,7 @@ import type { Perfil, PerfilInsert, PerfilUpdate } from "@/types/auth";
 
 /**
  * Tipos do schema Postgres (Supabase) — alinhados com
- * `supabase/migrations` e com `prisma/schema.prisma`.
+ * `prisma/schema.prisma` e com o SQL em `prisma/migrations`.
  *
  * Mantidos manualmente para não depender da service_role key
  * (`supabase gen types typescript`) no ambiente de build.

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
+import { obterAccessToken } from "@/lib/supabase/client";
 import { baixaFormSchema } from "@/lib/validators";
 import { formatQuantidade, onlyDigits } from "@/lib/format";
 import type { Item } from "@/types/item";
@@ -69,9 +71,16 @@ function BaixaForm({
 
     setErro(null);
     startTransition(async () => {
-      const resultado = await baixaItem(item.id, valor);
+      const token = await obterAccessToken();
+      if (!token) {
+        toast.error("Sessão expirada. Entre novamente para continuar.");
+        return;
+      }
+
+      const resultado = await baixaItem(token, item.id, valor);
 
       if (resultado.ok) {
+        notificarAtualizacaoEstoque();
         toast.success(
           `Baixa de ${formatQuantidade(valor)} unidade(s) registrada. Novo saldo: ${formatQuantidade(resultado.data?.saldo ?? 0)}.`,
         );

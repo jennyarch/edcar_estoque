@@ -1,35 +1,47 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
+  CheckCircle2,
   CircleAlert,
-  CircleCheck,
   ImagePlus,
   Loader2,
   UserPlus,
   X,
 } from "lucide-react";
-import { cadastroAction } from "@/actions/auth";
 import { PasswordInput } from "@/components/auth/password-input";
+import { useSessao } from "@/components/session/session-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { erroDoArquivo, processarAvatar } from "@/lib/avatar";
+import { mapAuthError } from "@/lib/auth-error";
 import { AVATAR_MAX_CHARS } from "@/lib/constants";
 import { maskTelefone } from "@/lib/format";
-import type { AuthState } from "@/types/actions";
-
-const initialState: AuthState = { error: null, message: null };
+import {
+  cadastroFormSchema,
+  firstIssue,
+} from "@/lib/validators";
 
 export function CadastroForm() {
-  const [state, formAction, pending] = useActionState(
-    cadastroAction,
-    initialState,
-  );
+  const { supabase } = useSessao();
+  const router = useRouter();
   const [telefone, setTelefone] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [erroAvatar, setErroAvatar] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [sucesso, setSucesso] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const arquivoRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!sucesso) return;
+    const timer = window.setTimeout(() => {
+      router.replace("/login");
+    }, 1600);
+    return () => window.clearTimeout(timer);
+  }, [sucesso, router]);
 
   async function selecionarArquivo(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -66,25 +78,79 @@ export function CadastroForm() {
     if (arquivoRef.current) arquivoRef.current.value = "";
   }
 
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const form = new FormData(event.currentTarget);
+    const valores = {
+      nome: String(form.get("nome") ?? ""),
+      email: String(form.get("email") ?? ""),
+      telefone: String(form.get("telefone") ?? ""),
+      avatar: String(form.get("avatar") ?? ""),
+      senha: String(form.get("senha") ?? ""),
+    };
+
+    const parsed = cadastroFormSchema.safeParse(valores);
+    if (!parsed.success) {
+      setErro(firstIssue(parsed.error));
+      return;
+    }
+
+    setErro(null);
+    setEnviando(true);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.senha,
+      options: {
+        data: {
+          nome: parsed.data.nome,
+          full_name: parsed.data.nome,
+          telefone: parsed.data.telefone,
+          avatar_url: parsed.data.avatar || null,
+        },
+      },
+    });
+
+    if (error) {
+      setEnviando(false);
+      setErro(mapAuthError(error.message));
+      return;
+    }
+
+    if (!data.user) {
+      setEnviando(false);
+      setErro("Não foi possível concluir o cadastro. Tente novamente.");
+      return;
+    }
+
+    setSucesso(true);
+  }
+
   return (
-    <form action={formAction} className="space-y-5" noValidate>
-      {state.error ? (
+    <form onSubmit={onSubmit} className="space-y-5" noValidate>
+      {erro ? (
         <div
           role="alert"
           className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm font-medium text-destructive"
         >
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span>{state.error}</span>
+          <span>{erro}</span>
         </div>
       ) : null}
 
-      {state.message ? (
+      {sucesso ? (
         <div
           role="status"
           className="flex items-start gap-2 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-400"
         >
-          <CircleCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span>{state.message}</span>
+          <CheckCircle2
+            className="mt-0.5 size-4 shrink-0"
+            aria-hidden="true"
+          />
+          <span>
+            Cadastro realizado com sucesso! Redirecionando para o login...
+          </span>
         </div>
       ) : null}
 
@@ -159,6 +225,7 @@ export function CadastroForm() {
               variant="outline"
               size="sm"
               onClick={() => arquivoRef.current?.click()}
+              disabled={enviando || sucesso}
             >
               <ImagePlus className="size-3.5" aria-hidden="true" />
               {avatar ? "Trocar foto" : "Escolher imagem"}
@@ -170,6 +237,7 @@ export function CadastroForm() {
                 variant="ghost"
                 size="sm"
                 onClick={removerArquivo}
+                disabled={enviando || sucesso}
               >
                 <X className="size-3.5" aria-hidden="true" />
                 Remover
@@ -206,15 +274,15 @@ export function CadastroForm() {
       <Button
         type="submit"
         className="w-full"
-        disabled={pending}
-        aria-busy={pending}
+        disabled={enviando || sucesso}
+        aria-busy={enviando}
       >
-        {pending ? (
+        {enviando ? (
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
         ) : (
           <UserPlus className="size-4" aria-hidden="true" />
         )}
-        {pending ? "Criando cadastro..." : "Criar cadastro"}
+        {enviando ? "Criando cadastro..." : "Criar cadastro"}
       </Button>
     </form>
   );

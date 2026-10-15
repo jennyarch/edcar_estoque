@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,11 +10,11 @@ import {
   type LucideIcon,
   Wrench,
 } from "lucide-react";
-import { logoutAction } from "@/actions/auth";
 import { Logo } from "@/components/logo";
 import { UserAvatar } from "@/components/dashboard/user-avatar";
+import { useSessao } from "@/components/session/session-provider";
 import { NAV_ITEMS } from "@/lib/constants";
-import type { PerfilUsuario } from "@/lib/auth";
+import type { PerfilUsuario } from "@/types/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +52,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ perfil }: AppSidebarProps) {
   const pathname = usePathname();
-  const formRef = useRef<HTMLFormElement>(null);
+  const { sair } = useSessao();
 
   return (
     <Sidebar collapsible="icon">
@@ -131,7 +130,7 @@ export function AppSidebar({ perfil }: AppSidebarProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onSelect={() => {
-                window.setTimeout(() => formRef.current?.submit(), 0);
+                void sair();
               }}
             >
               <LogOut aria-hidden="true" />
@@ -139,8 +138,6 @@ export function AppSidebar({ perfil }: AppSidebarProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <form ref={formRef} action={logoutAction} className="hidden" />
       </SidebarFooter>
     </Sidebar>
   );

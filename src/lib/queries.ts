@@ -1,5 +1,5 @@
-import "server-only";
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 import { DEFAULT_PAGE_SIZE, ESTOQUE_BAIXO } from "@/lib/constants";
 import { escapeLike } from "@/lib/format";
 import type {
@@ -10,14 +10,14 @@ import type {
 } from "@/types/item";
 import type { ListagemSearchParams } from "@/lib/validators";
 
-type ServerClient = Awaited<ReturnType<typeof createClient>>;
+type Cliente = SupabaseClient<Database>;
 
 /**
  * Listagem paginada de um categoria, com busca em um único campo.
  * A paginação é feita com `range` (from/to) sobre um total via count.
  */
 export async function buscarListagem(
-  supabase: ServerClient,
+  supabase: Cliente,
   categoria: Categoria,
   params: ListagemSearchParams,
 ): Promise<ListagemResult> {
@@ -63,7 +63,7 @@ export interface ResumoDashboard {
 }
 
 export async function buscarResumoDashboard(
-  supabase: ServerClient,
+  supabase: Cliente,
 ): Promise<ResumoDashboard> {
   const { data: itens, error } = await supabase
     .from("items")

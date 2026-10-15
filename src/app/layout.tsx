@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SessionProvider } from "@/components/session/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full" suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
-        {children}
+        <SessionProvider>{children}</SessionProvider>
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
