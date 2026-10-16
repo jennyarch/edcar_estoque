@@ -27,17 +27,14 @@ function saudacao(): string {
 }
 
 export function DashboardCliente() {
-  const { supabase, perfil } = useSessao();
+  const { perfil, token } = useSessao();
   const [resumo, setResumo] = useState<ResumoDashboard | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async (): Promise<ResumoDashboard> => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) throw new Error("Sessão expirada. Entre novamente.");
-    return buscarResumoDashboard(supabase);
-  }, [supabase]);
+    if (!token) throw new Error("Sessão expirada. Entre novamente.");
+    return buscarResumoDashboard(token);
+  }, [token]);
 
   const recarregar = useCallback(() => {
     void carregar().then(

@@ -24,8 +24,20 @@ import {
   firstIssue,
 } from "@/lib/validators";
 
+interface CadastroResponse {
+  user?: {
+    id: string;
+    nome: string;
+    email: string | null;
+    telefone: string | null;
+    avatarUrl: string | null;
+  };
+  token?: string;
+  error?: string;
+}
+
 export function CadastroForm() {
-  const { supabase } = useSessao();
+  const { definirSessao } = useSessao();
   const router = useRouter();
   const [telefone, setTelefone] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -38,8 +50,8 @@ export function CadastroForm() {
   useEffect(() => {
     if (!sucesso) return;
     const timer = window.setTimeout(() => {
-      router.replace("/login");
-    }, 1600);
+      router.replace("/");
+    }, 1200);
     return () => window.clearTimeout(timer);
   }, [sucesso, router]);
 
@@ -99,32 +111,40 @@ export function CadastroForm() {
     setErro(null);
     setEnviando(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email: parsed.data.email,
-      password: parsed.data.senha,
-      options: {
-        data: {
+    try {
+      const res = await fetch("/api/auth/cadastro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           nome: parsed.data.nome,
-          full_name: parsed.data.nome,
-          telefone: parsed.data.telefone,
-          avatar_url: parsed.data.avatar || null,
-        },
-      },
-    });
+          email: parsed.data.email,
+          telefone: parsed.data.telefone || undefined,
+          avatar: parsed.data.avatar || undefined,
+          senha: parsed.data.senha,
+        }),
+      });
 
-    if (error) {
-      setEnviando(false);
-      setErro(mapAuthError(error.message));
-      return;
-    }
+      const data = (await res.json()) as CadastroResponse;
 
-    if (!data.user) {
+      if (!res.ok || !data.user || !data.token) {
+        setEnviando(false);
+        setErro(mapAuthError(data.error ?? "Não foi possível concluir o cadastro."));
+        return;
+      }
+
+      definirSessao(data.token, {
+        id: data.user.id,
+        nome: data.user.nome,
+        email: data.user.email ?? "",
+        telefone: data.user.telefone ?? null,
+        avatarUrl: data.user.avatarUrl ?? null,
+      });
+
+      setSucesso(true);
+    } catch {
       setEnviando(false);
       setErro("Não foi possível concluir o cadastro. Tente novamente.");
-      return;
     }
-
-    setSucesso(true);
   }
 
   return (
@@ -144,12 +164,9 @@ export function CadastroForm() {
           role="status"
           className="flex items-start gap-2 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-400"
         >
-          <CheckCircle2
-            className="mt-0.5 size-4 shrink-0"
-            aria-hidden="true"
-          />
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>
-            Cadastro realizado com sucesso! Redirecionando para o login...
+            Cadastro realizado com sucesso! Redirecionando...
           </span>
         </div>
       ) : null}
@@ -189,7 +206,6 @@ export function CadastroForm() {
             placeholder="(00) 00000-0000"
             value={telefone}
             onChange={(event) => setTelefone(maskTelefone(event.target.value))}
-            required
           />
         </div>
       </div>
@@ -199,7 +215,7 @@ export function CadastroForm() {
         <div className="flex items-center gap-4">
           <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground ring-1 ring-border">
             {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element -- data URL não é otimizável pelo next/image
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={avatar}
                 alt="Pré-visualização da foto de perfil"

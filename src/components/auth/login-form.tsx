@@ -11,8 +11,20 @@ import { Label } from "@/components/ui/label";
 import { mapAuthError } from "@/lib/auth-error";
 import { firstIssue, loginFormSchema } from "@/lib/validators";
 
+interface LoginResponse {
+  user?: {
+    id: string;
+    nome: string;
+    email: string | null;
+    telefone: string | null;
+    avatarUrl: string | null;
+  };
+  token?: string;
+  error?: string;
+}
+
 export function LoginForm() {
-  const { supabase } = useSessao();
+  const { definirSessao } = useSessao();
   const router = useRouter();
   const [erro, setErro] = useState<string | null>(null);
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -36,20 +48,38 @@ export function LoginForm() {
     setErro(null);
     setEnviando(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: parsed.data.email,
-      password: parsed.data.senha,
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: parsed.data.email,
+          senha: parsed.data.senha,
+        }),
+      });
 
-    if (error) {
+      const data = (await res.json()) as LoginResponse;
+
+      if (!res.ok || !data.user || !data.token) {
+        setEnviando(false);
+        setErro(mapAuthError(data.error ?? "Falha no login."));
+        return;
+      }
+
+      definirSessao(data.token, {
+        id: data.user.id,
+        nome: data.user.nome,
+        email: data.user.email ?? "",
+        telefone: data.user.telefone ?? null,
+        avatarUrl: data.user.avatarUrl ?? null,
+      });
+
+      setMensagem("Login realizado! Redirecionando...");
+      router.replace("/");
+    } catch {
       setEnviando(false);
-      setErro(mapAuthError(error.message));
-      return;
+      setErro("Não foi possível fazer login. Tente novamente.");
     }
-
-    setMensagem("Login realizado! Redirecionando...");
-    router.replace("/");
-    router.refresh();
   }
 
   return (
@@ -69,10 +99,7 @@ export function LoginForm() {
           role="status"
           className="flex items-start gap-2 rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground"
         >
-          <Info
-            className="mt-0.5 size-4 shrink-0 text-primary"
-            aria-hidden="true"
-          />
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
           <span>{mensagem}</span>
         </div>
       ) : null}

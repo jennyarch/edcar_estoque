@@ -43,7 +43,7 @@ interface Estado {
 }
 
 export function EstoqueCliente({ categoria }: { categoria: Categoria }) {
-  const { supabase } = useSessao();
+  const { token } = useSessao();
   const searchParams = useSearchParams();
   const filtros = useMemo(() => lerFiltros(searchParams), [searchParams]);
 
@@ -56,13 +56,10 @@ export function EstoqueCliente({ categoria }: { categoria: Categoria }) {
     let ativo = true;
 
     async function carregar() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session || !ativo) return;
+      if (!token || !ativo) return;
 
       const tamanho = filtros.tamanho ?? DEFAULT_PAGE_SIZE;
-      const inicio = await buscarListagem(supabase, categoria, filtros);
+      const inicio = await buscarListagem(categoria, filtros, token);
       if (!ativo) return;
 
       const totalPaginas = Math.max(1, Math.ceil(inicio.total / tamanho));
@@ -71,10 +68,11 @@ export function EstoqueCliente({ categoria }: { categoria: Categoria }) {
 
       if (pagina > totalPaginas && inicio.total > 0) {
         pagina = totalPaginas;
-        resultado = await buscarListagem(supabase, categoria, {
-          ...filtros,
-          pagina,
-        });
+        resultado = await buscarListagem(
+          categoria,
+          { ...filtros, pagina },
+          token,
+        );
         if (!ativo) return;
       }
 
@@ -85,7 +83,7 @@ export function EstoqueCliente({ categoria }: { categoria: Categoria }) {
     return () => {
       ativo = false;
     };
-  }, [supabase, categoria, filtros, recarregar]);
+  }, [token, categoria, filtros, recarregar]);
 
   if (!estado) {
     return <EstoqueSkeleton />;

@@ -5,7 +5,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PackagePlus, Save } from "lucide-react";
 import { toast } from "sonner";
-import { createItem, updateItem } from "@/actions/items";
+import { useSessao } from "@/components/session/session-provider";
+import { createItemApi, updateItemApi } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,10 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
-import { obterAccessToken } from "@/lib/supabase/client";
-import { maskBRL, onlyDigits } from "@/lib/format";
+import { maskBRL, onlyDigits, parseBRLToNumber } from "@/lib/format";
 import { itemFormSchema, type ItemFormValues } from "@/lib/validators";
-import type { Categoria, Item } from "@/types/item";
+import type { Categoria, Item, ItemPayload } from "@/types/item";
 
 interface ItemFormDialogProps {
   categoria: Categoria;
@@ -36,6 +36,7 @@ export function ItemFormDialog({
   open,
   onOpenChange,
 }: ItemFormDialogProps) {
+  const { token } = useSessao();
   const [pending, startTransition] = useTransition();
   const ehEdicao = item !== null;
   const mostrarValor = categoria === "pecas";
@@ -81,24 +82,40 @@ export function ItemFormDialog({
 
   function onSubmit(values: ItemFormValues) {
     startTransition(async () => {
-      const token = await obterAccessToken();
       if (!token) {
         toast.error("Sessão expirada. Entre novamente para continuar.");
         return;
       }
 
-      const resultado = ehEdicao
-        ? await updateItem(token, item.id, categoria, values)
-        : await createItem(token, categoria, values);
+      const valorNumero =
+        categoria === "pecas" ? parseBRLToNumber(values.valor) : null;
 
-      if (resultado.ok) {
+      const payload: ItemPayload = {
+        categoria,
+        codigo: values.codigo,
+        nome: values.nome,
+        modelo: values.modelo,
+        descricao: values.descricao.length > 0 ? values.descricao : null,
+        medidas: Number(values.medidas),
+        qtd_estoque: Number(values.qtd_estoque),
+        valor: valorNumero,
+      };
+
+      try {
+        if (ehEdicao) {
+          await updateItemApi(item.id, payload);
+        } else {
+          await createItemApi(payload);
+        }
+
         notificarAtualizacaoEstoque();
         toast.success(ehEdicao ? "Item atualizado." : "Item cadastrado.");
         onOpenChange(false);
-        return;
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Não foi possível salvar.",
+        );
       }
-
-      toast.error(resultado.error);
     });
   }
 

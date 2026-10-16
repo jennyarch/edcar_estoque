@@ -12,7 +12,7 @@ const codigoSchema = z
   .string()
   .trim()
   .min(1, "Informe o código.")
-  .regex(/^\d+$/, "O código deve conter apenas números.")
+  // .regex(/^\d+$/, "O código deve conter apenas números.")
   .max(20, "Máximo de 20 dígitos.");
 
 const nomeSchema = z
@@ -106,16 +106,13 @@ export const cadastroFormSchema = z.object({
     .trim()
     .min(3, "Informe seu nome.")
     .max(80, "Máximo de 80 caracteres."),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Informe o e-mail.")
-    .email("E-mail inválido."),
+  email: z.string().trim().min(1, "Informe o e-mail.").email("E-mail inválido."),
   telefone: z
     .string()
     .trim()
-    .min(1, "Informe o telefone.")
+    .optional()
     .refine((value) => {
+      if (!value) return true;
       const digits = value.replace(/\D/g, "");
       return digits.length >= 10 && digits.length <= 11;
     }, "Telefone inválido."),
@@ -123,13 +120,14 @@ export const cadastroFormSchema = z.object({
     .string()
     .trim()
     .max(AVATAR_MAX_CHARS, "Imagem muito grande. Escolha uma foto menor.")
-    .refine(
-      (value) =>
-        value === "" ||
+    .optional()
+    .refine((value) => {
+      if (!value) return true;
+      return (
         /^https?:\/\/\S+$/i.test(value) ||
-        /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value),
-      "Imagem inválida. Selecione um arquivo JPG, PNG ou WebP.",
-    ),
+        /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value)
+      );
+    }, "Imagem inválida. Selecione um arquivo JPG, PNG ou WebP."),
   senha: z.string().min(6, "A senha deve ter ao menos 6 caracteres."),
 });
 

@@ -3,7 +3,8 @@
 import { useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteItem } from "@/actions/items";
+import { useSessao } from "@/components/session/session-provider";
+import { deleteItemApi } from "@/lib/api/client";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -14,7 +15,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
-import { obterAccessToken } from "@/lib/supabase/client";
 import type { Item } from "@/types/item";
 
 interface ConfirmDeleteDialogProps {
@@ -28,26 +28,26 @@ export function ConfirmDeleteDialog({
   open,
   onOpenChange,
 }: ConfirmDeleteDialogProps) {
+  const { token } = useSessao();
   const [pending, startTransition] = useTransition();
 
   function onConfirm() {
     startTransition(async () => {
-      const token = await obterAccessToken();
       if (!token) {
         toast.error("Sessão expirada. Entre novamente para continuar.");
         return;
       }
 
-      const resultado = await deleteItem(token, item.id);
-
-      if (resultado.ok) {
+      try {
+        await deleteItemApi(item.id);
         notificarAtualizacaoEstoque();
         toast.success(`"${item.nome}" removido do estoque.`);
         onOpenChange(false);
-        return;
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Não foi possível excluir.",
+        );
       }
-
-      toast.error(resultado.error);
     });
   }
 

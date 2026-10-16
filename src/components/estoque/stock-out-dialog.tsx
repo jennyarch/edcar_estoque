@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { Loader2, MinusCircle } from "lucide-react";
 import { toast } from "sonner";
-import { baixaItem } from "@/actions/items";
+import { useSessao } from "@/components/session/session-provider";
+import { baixaItemApi } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { notificarAtualizacaoEstoque } from "@/lib/estoque-events";
-import { obterAccessToken } from "@/lib/supabase/client";
 import { baixaFormSchema } from "@/lib/validators";
 import { formatQuantidade, onlyDigits } from "@/lib/format";
 import type { Item } from "@/types/item";
@@ -48,6 +48,7 @@ function BaixaForm({
   item: Item;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { token } = useSessao();
   const [pending, startTransition] = useTransition();
   const [quantidade, setQuantidade] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -71,24 +72,23 @@ function BaixaForm({
 
     setErro(null);
     startTransition(async () => {
-      const token = await obterAccessToken();
       if (!token) {
         toast.error("Sessão expirada. Entre novamente para continuar.");
         return;
       }
 
-      const resultado = await baixaItem(token, item.id, valor);
-
-      if (resultado.ok) {
+      try {
+        const { saldo } = await baixaItemApi(item.id, valor);
         notificarAtualizacaoEstoque();
         toast.success(
-          `Baixa de ${formatQuantidade(valor)} unidade(s) registrada. Novo saldo: ${formatQuantidade(resultado.data?.saldo ?? 0)}.`,
+          `Baixa de ${formatQuantidade(valor)} unidade(s) registrada. Novo saldo: ${formatQuantidade(saldo)}.`,
         );
         onOpenChange(false);
-        return;
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Não foi possível dar baixa.",
+        );
       }
-
-      toast.error(resultado.error);
     });
   }
 

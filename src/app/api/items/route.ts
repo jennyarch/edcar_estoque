@@ -1,0 +1,151 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getAuthenticatedUser } from "@/lib/api-auth";
+import { toItemDTO } from "@/lib/api/serializers";
+import { prisma } from "@/lib/prisma";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import { CATEGORIAS, type Categoria, type SearchField } from "@/types/item";
+
+const listQuerySchema = z.object({
+  categoria: z.enum(CATEGORIAS).optional(),
+  q: z.string().trim().max(60).optional().catch(undefined),
+  campo: z.enum(["nome", "codigo", "modelo"]).optional().catch("nome"),
+  pagina: z.coerce.number().int().min(1).max(9999).optional().catch(1),
+  tamanho: z.coerce.number().int().min(1).max(100).optional().catch(DEFAULT_PAGE_SIZE),
+});
+
+const createSchema = z.object({
+  categoria: z.enum(CATEGORIAS),
+  codigo: z
+    .string()
+    .trim()
+    .min(1, "Informe o código.")
+    .regex(/^\d+$/, "O código deve conter apenas números.")
+    .max(20, "Máximo de 20 dígitos."),
+  nome: z.string().trim().min(1, "Informe o nome.").max(80, "Máximo de 80 caracteres."),
+  modelo: z.string().trim().min(1, "Informe o modelo.").max(36, "Máximo de 36 caracteres."),
+  descricao: z
+    .string()
+    .trim()
+    .max(50, "Máximo de 50 caracteres.")
+    .optional()
+    .nullable()
+    .transform((v) => (v === "" ? null : v ?? null)),
+  medidas: z.coerce.number().int().min(1, "Medida entre 1 e 5000 mm.").max(5000, "Medida entre 1 e 5000 mm."),
+  qtd_estoque: z.coerce.number().int().min(0).max(999999, "Quantidade máxima de 999999."),
+  valor: z.number().gt(0).nullable().optional(),
+});
+
+function toValor(categoria: Categoria, valor?: number | null) {
+  if (categoria === "pecas") {
+    if (!valor || valor <= 0) return null;
+    return valor;
+  }
+  return null;
+}
+
+export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req);
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  }
+
+  const url = new URL(req.url);
+  const parsed = listQuerySchema.safeParse(Object.fromEntries(url.searchParams));
+  if (!parsed.success) {
+    const error = parsed.error.issues[0]?.message ?? "Parâmetros inválidos.";
+    return NextResponse.json({ error }, { status: 400 });
+  }
+
+  const { categoria, q, campo, pagina, tamanho } = parsed.data;
+  const page = pagina ?? 1;
+  const size = tamanho ?? DEFAULT_PAGE_SIZE;
+  const searchField = (campo ?? "nome") as SearchField;
+
+  const where = {
+    ...(categoria ? { categoria } : {}),
+    ...(q
+      ? { [searchField]: { contains: q, mode: "insensitive" as const } }
+      : {}),
+  };
+
+  try {
+    const [items, total] = await prisma.$transaction([
+      prisma.item.findMany({
+        where,
+        orderBy: { nome: "asc" },
+        skip: (page - 1) * size,
+        take: size,
+      }),
+      prisma.item.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      items: items.map(toItemDTO),
+      total,
+      pagina: page,
+      tamanho: size,
+    });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Erro ao listar itens." }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const user = await getAuthenticatedUser(req);
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const parsed = createSchema.safeParse(body);
+    if (!parsed.success) {
+      const error = parsed.error.issues[0]?.message ?? "Dados inválidos.";
+      return NextResponse.json({ error }, { status: 400 });
+    }
+
+    const data = parsed.data;
+    const categoria = data.categoria as Categoria;
+    const valor = toValor(categoria, data.valor);
+
+    if (categoria === "pecas" && (!valor || valor <= 0)) {
+      return NextResponse.json(
+        { error: "Informe um valor unitário válido." },
+        { status: 400 },
+      );
+    }
+
+    const item = await prisma.item.create({
+      data: {
+        categoria,
+        codigo: data.codigo,
+        nome: data.nome,
+        modelo: data.modelo,
+        descricao: data.descricao ?? null,
+        medidas: data.medidas,
+        qtdEstoque: data.qtd_estoque,
+        valor,
+      },
+    });
+
+    if (item.qtdEstoque > 0) {
+      await prisma.stockMovement.create({
+        data: {
+          itemId: item.id,
+          tipo: "entrada",
+          quantidade: item.qtdEstoque,
+          saldoAnterior: 0,
+          saldoPosterior: item.qtdEstoque,
+          userId: user.id,
+        },
+      });
+    }
+
+    return NextResponse.json({ item: toItemDTO(item) }, { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Erro ao criar item." }, { status: 500 });
+  }
+}
