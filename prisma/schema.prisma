@@ -1,0 +1,114 @@
+// Fonte da verdade das tabelas do app (schema public).
+// Funções, triggers, RLS, GRANTs, índices GIN e FKs para auth.users
+// ficam no SQL em prisma/migrations — o Prisma não modela esses objetos.
+// O runtime continua usando supabase-js; o Prisma CLI valida e gera/aplica DDL.
+//
+// Nunca rode `prisma db push` nem `prisma migrate dev` neste projeto Supabase:
+// o primeiro pode dropar objetos extras (RLS, funções, auth); o segundo exige
+// shadow database (criar DB), o que o Supabase hospedado não permite.
+// Fluxo: editar este arquivo → npm run db:migrate -- nome → revisar o SQL →
+// npm run db:deploy.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Categoria {
+  diafragma
+  pecas
+
+  @@map("categoria")
+}
+
+enum TipoMovimento {
+  entrada
+  baixa
+  ajuste
+
+  @@map("tipo_movimento")
+}
+
+/// Dados do cadastro. PK = auth.users.id (FK e trigger estão no SQL da baseline).
+model Profile {
+  id        String   @id @db.Uuid
+  nome      String   @default("")
+  email     String?
+  telefone  String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  @@index([nome], map: "profiles_nome_idx")
+  @@map("profiles")
+}
+
+model Item {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoria  Categoria
+  codigo     String
+  nome       String
+  modelo     String
+  descricao  String?
+  medidas    Int
+  qtdEstoque Int       @default(0) @map("qtd_estoque")
+  valor      Decimal?  @db.Decimal(12, 2)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  movimentos StockMovement[]
+
+  @@index([categoria, nome], map: "items_categoria_nome_idx")
+  @@map("items")
+}
+
+model StockMovement {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  itemId         String        @map("item_id") @db.Uuid
+  tipo           TipoMovimento
+  quantidade     Int
+  saldoAnterior  Int?          @map("saldo_anterior")
+  saldoPosterior Int?          @map("saldo_posterior")
+  userId         String?       @map("user_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([itemId], map: "stock_movements_item_idx")
+  @@index([createdAt(sort: Desc)], map: "stock_movements_created_idx")
+  @@map("stock_movements")
+}
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome      String
+  email     String   @unique
+  telefone  String?
+  avatarUrl String?  @map("avatar_url")
+  senhaHash String   @map("senha_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  sessions  Session[]
+  movements StockMovement[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
